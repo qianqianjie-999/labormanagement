@@ -1,0 +1,690 @@
+{% extends "base.html" %}
+
+{% block title %}用户管理 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="card border-0 shadow-sm">
+            <div class="card-body py-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h1 class="h3 mb-2">
+                            <i class="fas fa-users text-primary me-2"></i>用户管理
+                        </h1>
+                        <p class="text-muted mb-0">管理系统用户和权限设置</p>
+                    </div>
+                    <div class="text-end">
+                        <span class="badge bg-light text-primary fs-6">
+                            <i class="fas fa-user-friends me-1"></i> {{ users|length }} 位用户
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- 添加新用户表单 - 更新为卡片样式 -->
+        <div class="card border-0 shadow-sm mb-4">
+            <div class="card-header bg-gradient bg-light border-0 py-3">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-plus text-success fs-5 me-2"></i>
+                    <h5 class="card-title mb-0 text-dark">添加新用户</h5>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <form id="addUserForm">
+                    <div class="row g-3">
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <label for="username" class="form-label fw-semibold">
+                                <span class="text-danger">*</span> 用户名
+                            </label>
+                            <input type="text" class="form-control form-control-sm" id="username" name="username" required placeholder="输入用户名">
+                            <div class="form-text text-muted small">登录使用的用户名</div>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <label for="display_name" class="form-label fw-semibold">
+                                <span class="text-danger">*</span> 显示名称
+                            </label>
+                            <input type="text" class="form-control form-control-sm" id="display_name" name="display_name" required placeholder="输入显示名称">
+                            <div class="form-text text-muted small">系统中显示的名字</div>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <label for="password" class="form-label fw-semibold">
+                                <span class="text-danger">*</span> 密码
+                            </label>
+                            <input type="password" class="form-control form-control-sm" id="password" name="password" required placeholder="输入初始密码">
+                            <div class="form-text text-muted small">设置初始密码</div>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <label for="email" class="form-label fw-semibold">邮箱</label>
+                            <input type="email" class="form-control form-control-sm" id="email" name="email" placeholder="user@example.com">
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <label for="department" class="form-label fw-semibold">部门</label>
+                            <input type="text" class="form-control form-control-sm" id="department" name="department" placeholder="输入部门名称">
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6">
+                            <label for="is_admin" class="form-label fw-semibold">角色</label>
+                            <select class="form-select form-select-sm" id="is_admin" name="is_admin">
+                                <option value="false">普通用户</option>
+                                <option value="true">管理员</option>
+                            </select>
+                        </div>
+                        <div class="col-xl-2 col-lg-3 col-md-4 col-sm-6 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success btn-sm w-100">
+                                <i class="fas fa-plus-circle me-1"></i> 添加用户
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 用户列表 -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-gradient bg-light border-0 py-3">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-list text-primary fs-5 me-2"></i>
+                        <h5 class="card-title mb-0 text-dark">用户列表</h5>
+                    </div>
+                    <div>
+                        <span class="badge bg-primary-subtle text-primary fs-6">
+                            <i class="fas fa-users me-1"></i> {{ users|length }} 个用户
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                {% if users %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">ID</th>
+                                <th>用户名</th>
+                                <th>显示名称</th>
+                                <th>邮箱</th>
+                                <th>部门</th>
+                                <th>角色</th>
+                                <th>状态</th>
+                                <th>创建时间</th>
+                                <th>最后登录</th>
+                                <th class="text-center pe-4">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                            <tr>
+                                <td class="ps-4">{{ user.id }}</td>
+                                <td><strong class="text-primary">{{ user.username }}</strong></td>
+                                <td>{{ user.display_name }}</td>
+                                <td>
+                                    {% if user.email %}
+                                        <a href="mailto:{{ user.email }}" class="text-decoration-none">{{ user.email }}</a>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.department %}
+                                        <span class="badge bg-light text-dark">{{ user.department }}</span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_admin %}
+                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                            <i class="fas fa-crown me-1"></i>管理员
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">
+                                            普通用户
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if user.is_active %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">
+                                            <i class="fas fa-check-circle me-1"></i>启用
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25">
+                                            <i class="fas fa-ban me-1"></i>禁用
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="text-muted small">{{ user.created_at.strftime('%Y-%m-%d') }}</span>
+                                </td>
+                                <td>
+                                    {% if user.last_login %}
+                                        <span class="small">{{ user.last_login.strftime('%Y-%m-%d %H:%M') }}</span>
+                                    {% else %}
+                                        <span class="text-muted small">从未登录</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-center pe-4">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <button class="btn btn-outline-primary edit-user-btn"
+                                                data-user-id="{{ user.id }}"
+                                                data-bs-toggle="tooltip" title="编辑用户">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% if user.id != current_user.id %}
+                                        <button class="btn btn-outline-warning reset-password-btn"
+                                                data-user-id="{{ user.id }}"
+                                                data-username="{{ user.username }}"
+                                                data-bs-toggle="tooltip" title="重置密码">
+                                            <i class="fas fa-key"></i>
+                                        </button>
+                                        <button class="btn btn-outline-danger delete-user-btn"
+                                                data-user-id="{{ user.id }}"
+                                                data-username="{{ user.username }}"
+                                                data-bs-toggle="tooltip" title="删除用户">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <div class="mb-3">
+                        <i class="fas fa-users fa-3x text-muted opacity-25"></i>
+                    </div>
+                    <h5 class="text-muted">暂无用户数据</h5>
+                    <p class="text-muted small">点击上方"添加新用户"创建第一个用户</p>
+                </div>
+                {% endif %}
+            </div>
+            {% if users %}
+            <div class="card-footer bg-light border-0 py-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div class="text-muted small">
+                        显示 {{ users|length }} 个用户
+                    </div>
+                    <div>
+                        <span class="badge bg-info bg-opacity-10 text-info">
+                            <i class="fas fa-info-circle me-1"></i> 点击用户行进行操作
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- 编辑用户模态框 -->
+<div class="modal fade" id="editUserModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-gradient bg-light border-0">
+                <h5 class="modal-title text-dark">
+                    <i class="fas fa-user-edit text-primary me-2"></i>编辑用户
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="editUserForm">
+                    <input type="hidden" id="edit_user_id" name="id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="edit_username" class="form-label fw-semibold">用户名</label>
+                            <input type="text" class="form-control" id="edit_username" readonly>
+                            <div class="form-text text-muted small">用户名不可修改</div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_display_name" class="form-label fw-semibold">显示名称</label>
+                            <input type="text" class="form-control" id="edit_display_name" name="display_name" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_email" class="form-label fw-semibold">邮箱</label>
+                            <input type="email" class="form-control" id="edit_email" name="email">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="edit_department" class="form-label fw-semibold">部门</label>
+                            <input type="text" class="form-control" id="edit_department" name="department">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold d-block">角色</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="is_admin" id="edit_role_user" value="false" autocomplete="off">
+                                <label class="btn btn-outline-secondary" for="edit_role_user">
+                                    <i class="fas fa-user me-1"></i>普通用户
+                                </label>
+
+                                <input type="radio" class="btn-check" name="is_admin" id="edit_role_admin" value="true" autocomplete="off">
+                                <label class="btn btn-outline-danger" for="edit_role_admin">
+                                    <i class="fas fa-crown me-1"></i>管理员
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold d-block">状态</label>
+                            <div class="btn-group w-100" role="group">
+                                <input type="radio" class="btn-check" name="is_active" id="edit_status_active" value="true" autocomplete="off">
+                                <label class="btn btn-outline-success" for="edit_status_active">
+                                    <i class="fas fa-check-circle me-1"></i>启用
+                                </label>
+
+                                <input type="radio" class="btn-check" name="is_active" id="edit_status_inactive" value="false" autocomplete="off">
+                                <label class="btn btn-outline-warning" for="edit_status_inactive">
+                                    <i class="fas fa-ban me-1"></i>禁用
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="col-12">
+                            <label for="edit_new_password" class="form-label fw-semibold">
+                                <i class="fas fa-key me-1"></i>新密码
+                            </label>
+                            <input type="password" class="form-control" id="edit_new_password" name="new_password" placeholder="留空不修改密码">
+                            <div class="form-text text-muted small">如需修改密码，请填写新密码</div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-primary" id="saveEditUserBtn">
+                    <i class="fas fa-save me-1"></i>保存修改
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 重置密码模态框 -->
+<div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-gradient bg-warning bg-opacity-10 border-0">
+                <h5 class="modal-title text-warning">
+                    <i class="fas fa-key me-2"></i>重置密码
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="resetPasswordForm">
+                    <input type="hidden" id="reset_user_id" name="user_id">
+                    <div class="mb-4">
+                        <div class="alert alert-warning border-warning">
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-exclamation-triangle text-warning fs-4 me-3"></i>
+                                <div>
+                                    <h6 class="alert-heading mb-1">重置用户密码</h6>
+                                    <p class="mb-0 small">即将重置用户 <strong class="text-dark" id="reset_username"></strong> 的密码</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-light border small">
+                            <i class="fas fa-info-circle text-info me-1"></i>
+                            重置后原密码将失效，请确保通知用户新的密码。
+                        </div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="reset_new_password" class="form-label fw-semibold">新密码</label>
+                            <input type="password" class="form-control" id="reset_new_password" name="new_password" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="reset_confirm_password" class="form-label fw-semibold">确认密码</label>
+                            <input type="password" class="form-control" id="reset_confirm_password" required>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-0 bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i>取消
+                </button>
+                <button type="button" class="btn btn-warning" id="saveResetPasswordBtn">
+                    <i class="fas fa-redo me-1"></i>重置密码
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 初始化工具提示
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+
+    // 添加用户
+    $('#addUserForm').submit(function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: '{{ url_for("api_add_user") }}',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', '用户添加成功！', '用户已成功添加到系统。');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', '添加失败', response.message);
+                }
+            },
+            error: function(xhr) {
+                showToast('error', '网络错误', '请检查网络连接后重试！');
+            }
+        });
+    });
+
+    // 编辑用户
+    $('.edit-user-btn').click(function() {
+        var userId = $(this).data('user-id');
+
+        // 获取用户数据
+        $.ajax({
+            url: '/api/admin/users/' + userId,
+            type: 'GET',
+            success: function(user) {
+                // 填充表单
+                $('#edit_user_id').val(user.id);
+                $('#edit_username').val(user.username);
+                $('#edit_display_name').val(user.display_name);
+                $('#edit_email').val(user.email || '');
+                $('#edit_department').val(user.department || '');
+
+                // 设置角色
+                if (user.is_admin) {
+                    $('#edit_role_admin').prop('checked', true);
+                    $('#edit_role_admin').next('label').addClass('active');
+                } else {
+                    $('#edit_role_user').prop('checked', true);
+                    $('#edit_role_user').next('label').addClass('active');
+                }
+
+                // 设置状态
+                if (user.is_active) {
+                    $('#edit_status_active').prop('checked', true);
+                    $('#edit_status_active').next('label').addClass('active');
+                } else {
+                    $('#edit_status_inactive').prop('checked', true);
+                    $('#edit_status_inactive').next('label').addClass('active');
+                }
+
+                // 清空密码字段
+                $('#edit_new_password').val('');
+
+                // 显示模态框
+                var modal = new bootstrap.Modal(document.getElementById('editUserModal'));
+                modal.show();
+            }
+        });
+    });
+
+    // 保存编辑
+    $('#saveEditUserBtn').click(function() {
+        var userId = $('#edit_user_id').val();
+        var data = {
+            display_name: $('#edit_display_name').val(),
+            email: $('#edit_email').val(),
+            department: $('#edit_department').val(),
+            is_admin: $('input[name="is_admin"]:checked').val() === 'true',
+            is_active: $('input[name="is_active"]:checked').val() === 'true'
+        };
+
+        // 如果有新密码
+        var newPassword = $('#edit_new_password').val();
+        if (newPassword) {
+            data.new_password = newPassword;
+        }
+
+        $.ajax({
+            url: '{{ url_for("api_update_user", user_id=0) }}'.replace('0', userId),
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', '更新成功', '用户信息已更新！');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', '更新失败', response.message);
+                }
+            },
+            error: function(xhr) {
+                showToast('error', '网络错误', '请检查网络连接后重试！');
+            }
+        });
+    });
+
+    // 重置密码
+    $('.reset-password-btn').click(function() {
+        var userId = $(this).data('user-id');
+        var username = $(this).data('username');
+
+        $('#reset_user_id').val(userId);
+        $('#reset_username').text(username);
+        $('#reset_new_password').val('');
+        $('#reset_confirm_password').val('');
+
+        var modal = new bootstrap.Modal(document.getElementById('resetPasswordModal'));
+        modal.show();
+    });
+
+    // 保存重置密码
+    $('#saveResetPasswordBtn').click(function() {
+        var newPassword = $('#reset_new_password').val();
+        var confirmPassword = $('#reset_confirm_password').val();
+
+        if (newPassword !== confirmPassword) {
+            showToast('warning', '密码不一致', '两次输入的密码不一致！');
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            showToast('warning', '密码过短', '密码长度至少6位！');
+            return;
+        }
+
+        var userId = $('#reset_user_id').val();
+        var data = { new_password: newPassword };
+
+        $.ajax({
+            url: '{{ url_for("api_reset_user_password", user_id=0) }}'.replace('0', userId),
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    showToast('success', '密码重置成功', '用户密码已更新！');
+                    $('#resetPasswordModal').modal('hide');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1500);
+                } else {
+                    showToast('error', '重置失败', response.message);
+                }
+            },
+            error: function(xhr) {
+                showToast('error', '网络错误', '请检查网络连接后重试！');
+            }
+        });
+    });
+
+    // 删除用户
+    $('.delete-user-btn').click(function() {
+        var userId = $(this).data('user-id');
+        var username = $(this).data('username');
+
+        if (confirm(`确定要删除用户 "${username}" 吗？\n\n此操作不可撤销，请谨慎操作！`)) {
+            $.ajax({
+                url: '{{ url_for("api_delete_user", user_id=0) }}'.replace('0', userId),
+                type: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('success', '删除成功', '用户已从系统中删除！');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1500);
+                    } else {
+                        showToast('error', '删除失败', response.message);
+                    }
+                },
+                error: function(xhr) {
+                    showToast('error', '网络错误', '请检查网络连接后重试！');
+                }
+            });
+        }
+    });
+
+    // Toast通知函数
+    function showToast(type, title, message) {
+        // 简单的alert替代方案，您可以根据需要集成toast库
+        const alertClass = {
+            'success': 'alert-success',
+            'error': 'alert-danger',
+            'warning': 'alert-warning',
+            'info': 'alert-info'
+        }[type] || 'alert-info';
+
+        const icon = {
+            'success': 'fas fa-check-circle',
+            'error': 'fas fa-exclamation-circle',
+            'warning': 'fas fa-exclamation-triangle',
+            'info': 'fas fa-info-circle'
+        }[type] || 'fas fa-info-circle';
+
+        const toastHtml = `
+            <div class="alert ${alertClass} alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999; max-width: 350px;">
+                <div class="d-flex">
+                    <div class="me-3">
+                        <i class="${icon} fs-4"></i>
+                    </div>
+                    <div>
+                        <h6 class="alert-heading mb-1">${title}</h6>
+                        <p class="mb-0 small">${message}</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            </div>
+        `;
+
+        $('body').append(toastHtml);
+
+        // 3秒后自动移除
+        setTimeout(function() {
+            $('.alert').alert('close');
+        }, 3000);
+    }
+
+    // 按钮组active状态切换
+    $('.btn-group .btn-check').on('change', function() {
+        $(this).siblings('label').removeClass('active');
+        $(this).next('label').addClass('active');
+    });
+});
+</script>
+<style>
+/* 自定义样式 */
+.card {
+    border-radius: 10px;
+}
+
+.card-header.bg-gradient {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+}
+
+.table thead th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #6c757d;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+}
+
+.badge {
+    border-radius: 6px;
+    padding: 0.35em 0.65em;
+    font-weight: 500;
+}
+
+.btn-group .btn-outline-primary:hover,
+.btn-group .btn-outline-warning:hover,
+.btn-group .btn-outline-danger:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.btn-group.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+.btn-check:checked + label.active {
+    background-color: var(--bs-btn-active-bg);
+    border-color: var(--bs-btn-active-border-color);
+    color: var(--bs-btn-active-color);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+    .table-responsive {
+        border: 0;
+    }
+
+    .table thead {
+        display: none;
+    }
+
+    .table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+    }
+
+    .table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        border-bottom: 1px solid #f8f9fa;
+        padding: 0.75rem;
+    }
+
+    .table tbody td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #6c757d;
+        min-width: 100px;
+    }
+}
+</style>
+{% endblock %}

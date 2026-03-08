@@ -1,0 +1,681 @@
+<!-- templates/user/apply.html - 修改用工申请页面（隐藏系数，增加拟申请用工） -->
+{% extends "base.html" %}
+
+{% block title %}用工申请 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<h1 class="mb-4">
+    <i class="fas fa-edit"></i> 用工申请
+    <small class="text-muted">可添加多条分部分项工程</small>
+</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-10 offset-lg-1">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-file-alt"></i> 用工申请表
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('user_apply_submit') }}" id="applicationForm">
+                    <!-- 一、申请部门申请人员 -->
+                    <h4 class="mb-3 border-bottom pb-2">
+                        <i class="fas fa-user-tie"></i> 一、申请部门及申请人员
+                    </h4>
+
+                    <div class="row mb-4">
+                        <div class="col-md-6 mb-3">
+                            <label for="department" class="form-label">申请部门 *</label>
+                            <input type="text" class="form-control" id="department" name="department" required>
+                            <div class="form-text">例如：工程部、施工队</div>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="applicant" class="form-label">申请人员 *</label>
+                            <input type="text" class="form-control" id="applicant" name="applicant"
+                                   value="{{ current_user.display_name }}" readonly>
+                            <div class="form-text">系统自动填入</div>
+                        </div>
+                    </div>
+
+                    <!-- 二、项目名称和项目说明 -->
+                    <h4 class="mb-3 border-bottom pb-2">
+                        <i class="fas fa-project-diagram"></i> 二、项目信息
+                    </h4>
+
+                    <div class="row mb-4">
+                        <div class="col-12 mb-3">
+                            <label for="project_name" class="form-label">项目名称 *</label>
+                            <input type="text" class="form-control" id="project_name" name="project_name" required>
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label for="project_description" class="form-label">项目说明</label>
+                            <textarea class="form-control" id="project_description" name="project_description" rows="3"></textarea>
+                            <div class="form-text">简要描述项目内容和要求</div>
+                        </div>
+                    </div>
+
+                    <!-- 三、分部分项工程列表（可添加多条） -->
+                    <h4 class="mb-3 border-bottom pb-2">
+                        <i class="fas fa-list-ol"></i> 三、分部分项工程明细
+                    </h4>
+
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>说明：</strong>系统自动计算用工系数，用户需根据实际情况输入"拟申请用工"。
+                    </div>
+
+                    <div class="mb-4">
+                        <button type="button" class="btn btn-success mb-3" id="addWorkItemBtn">
+                            <i class="fas fa-plus"></i> 添加分部分项工程
+                        </button>
+
+                        <!-- 分部分项工程表格 -->
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="workItemsTable">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th width="5%">序号</th>
+                                        <th width="20%">分部分项工程</th>
+                                        <th width="10%">用工系数</th>
+                                        <th width="10%">计量单位</th>
+                                        <th width="15%">工程量</th>
+                                        <th width="15%">所需用工</th>
+                                        <th width="15%">拟申请用工</th>
+                                        <th width="10%">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workItemsBody">
+                                    <!-- 动态添加的行将在这里显示 -->
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-info">
+                                        <td colspan="5" class="text-end"><strong>系统计算总用工：</strong></td>
+                                        <td id="totalLabor">0.00</td>
+                                        <td colspan="2"></td>
+                                    </tr>
+                                    <tr class="table-warning">
+                                        <td colspan="6" class="text-end"><strong>您申请总用工：</strong></td>
+                                        <td id="totalUserProposed">0.00</td>
+                                        <td></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <!-- 隐藏字段，用于存储JSON数据 -->
+                        <input type="hidden" id="workItemsData" name="work_items" value="[]">
+                    </div>
+
+                    <!-- 四、申请工人名字 -->
+                    <h4 class="mb-3 border-bottom pb-2">
+                        <i class="fas fa-users"></i> 四、工人名单及其它说明
+                    </h4>
+
+                    <div class="mb-4">
+                        <label for="worker_names" class="form-label">工人名单及其他说明</label>
+                        <textarea class="form-control" id="worker_names" name="worker_names" rows="4" placeholder="重点说明定额中没有的用工"></textarea>
+                        <div class="form-text">留空将由系统分配</div>
+                    </div>
+
+                    <!-- 提交按钮 -->
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-paper-plane"></i> 提交用工申请
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 简单的使用提示 -->
+        <div class="card mt-4">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-lightbulb"></i> 使用提示
+            </div>
+            <div class="card-body">
+                <ul class="mb-0">
+                    <li>点击"添加分部分项工程"按钮可以从工程库中选择项目</li>
+                    <li>用工系数由系统自动计算并隐藏显示</li>
+                    <li>在工程量列输入具体的数量，系统会自动计算所需用工（隐藏显示）</li>
+                    <li><strong>必须</strong>在"拟申请用工"列输入您申请的具体用工数量</li>
+                    <li>可以添加多个分部分项工程，系统会自动计算总用工数</li>
+                    <li>工人名单可以为空，留空将由系统自动分配</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 分部分项选择模态框 -->
+<div class="modal fade" id="workItemModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">选择分部分项工程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label for="searchItem" class="form-label">搜索工程：</label>
+                        <input type="text" class="form-control" id="searchItem" placeholder="输入代码或名称搜索...">
+                    </div>
+                    <div class="col-md-6">
+                        <label for="filterCategory" class="form-label">按分类筛选：</label>
+                        <select class="form-select" id="filterCategory">
+                            <option value="">全部分类</option>
+                            {% set categories = items|map(attribute='category')|unique|list %}
+                            {% for category in categories %}
+                            <option value="{{ category }}">{{ category }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-hover" id="workItemSelectionTable">
+                        <thead>
+                            <tr>
+                                <th width="5%">
+                                    <input type="checkbox" id="selectAll" class="form-check-input">
+                                </th>
+                                <th>代码</th>
+                                <th>名称</th>
+                                <th>单位人工系数</th>
+                                <th>单位</th>
+                                <th>分类</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr class="selectable-row"
+                                data-id="{{ item.id }}"
+                                data-code="{{ item.code }}"
+                                data-name="{{ item.name }}"
+                                data-coefficient="{{ item.labor_coefficient }}"
+                                data-unit="{{ item.unit }}"
+                                data-category="{{ item.category }}">
+                                <td>
+                                    <input type="checkbox" class="form-check-input item-checkbox"
+                                           data-id="{{ item.id }}">
+                                </td>
+                                <td><span class="badge bg-info">{{ item.code }}</span></td>
+                                <td><strong>{{ item.name }}</strong></td>
+                                <td>
+                                    {% if item.code == 'QT001' %}
+                                        <span class="coefficient-hidden">***</span>
+                                    {% else %}
+                                        {% set reference_coefficient = item.labor_coefficient * current_reference_coefficient %}
+                                        {{ "%.2f"|format(reference_coefficient) }}
+                                        <small class="text-muted d-block" style="font-size: 0.8rem;">参考值</small>
+                                    {% endif %}
+                                </td>
+                                <td>{{ item.unit }}</td>
+                                <td><span class="badge bg-secondary">{{ item.category }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="confirmSelection">确认选择</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.work-item-row {
+    transition: background-color 0.3s;
+}
+.work-item-row:hover {
+    background-color: #f8f9fa;
+}
+.quantity-input, .proposed-input {
+    max-width: 120px;
+}
+.delete-row-btn {
+    cursor: pointer;
+}
+.selectable-row {
+    cursor: pointer;
+}
+.selectable-row:hover {
+    background-color: #f0f8ff;
+}
+.serial-number {
+    text-align: center;
+    font-weight: bold;
+}
+.item-checkbox {
+    margin: 0;
+    cursor: pointer;
+}
+.selectable-row:hover {
+    background-color: #f8f9fa;
+}
+.selectable-row td {
+    vertical-align: middle;
+}
+.modal-footer {
+    justify-content: space-between;
+}
+#confirmSelection {
+    min-width: 100px;
+}
+.table-success {
+    background-color: #d1e7dd !important;
+}
+.coefficient-hidden {
+    color: #666;
+    font-style: italic;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// 全局变量
+let selectedItems = [];  // 存储已选择的项目ID
+let rowCounter = 0;      // 行计数器
+let selectedCheckboxes = []; // 存储选中的复选框
+
+$(document).ready(function() {
+    console.log("页面加载完成");
+
+    // 初始化选择功能
+    setupSelectAll();
+    setupConfirmSelection();
+
+    // 显示选择模态框
+    $('#addWorkItemBtn').click(function() {
+        $('#workItemModal').modal('show');
+        updateModalButtonStates();
+    });
+
+    // 搜索和筛选
+    $('#searchItem, #filterCategory').on('input change', function() {
+        filterWorkItems();
+    });
+
+    // 表单提交验证
+    $('#applicationForm').submit(function(e) {
+        if (selectedItems.length === 0) {
+            alert('请至少添加一个分部分项工程！');
+            e.preventDefault();
+            return false;
+        }
+
+        // 检查拟申请用工是否填写
+        let allProposedFilled = true;
+        $('.proposed-input').each(function() {
+            const value = parseFloat($(this).val()) || 0;
+            if (value <= 0) {
+                allProposedFilled = false;
+                $(this).addClass('is-invalid');
+            } else {
+                $(this).removeClass('is-invalid');
+            }
+        });
+
+        if (!allProposedFilled) {
+            alert('请填写所有"拟申请用工"字段！');
+            e.preventDefault();
+            return false;
+        }
+
+        updateWorkItemsData();
+
+        if (!confirm('确定要提交用工申请吗？')) {
+            e.preventDefault();
+            return false;
+        }
+
+        return true;
+    });
+
+    // 初始化表格
+    updateModalButtonStates();
+});
+
+// ========== 修复的全选功能 ==========
+
+// 设置全选功能
+function setupSelectAll() {
+    $('#selectAll').change(function() {
+        const isChecked = $(this).prop('checked');
+
+        // 只选中当前可见的复选框（筛选后的项目）
+        $('.item-checkbox:visible').each(function() {
+            const $checkbox = $(this);
+            // 检查是否已选择（已添加的项复选框是禁用的）
+            if (!$checkbox.prop('disabled')) {
+                $checkbox.prop('checked', isChecked);
+            }
+        });
+
+        updateSelectedCheckboxes();
+    });
+
+    $('.item-checkbox').change(function() {
+        updateSelectAllState();
+        updateSelectedCheckboxes();
+    });
+}
+
+// 更新全选状态
+function updateSelectAllState() {
+    // 只统计当前可见且未禁用的复选框
+    const visibleCheckboxes = $('.item-checkbox:visible:not(:disabled)');
+    const total = visibleCheckboxes.length;
+    const checked = visibleCheckboxes.filter(':checked').length;
+
+    $('#selectAll').prop('checked', total > 0 && total === checked);
+}
+
+// 更新选中的复选框
+function updateSelectedCheckboxes() {
+    selectedCheckboxes = [];
+    $('.item-checkbox:checked:visible').each(function() {
+        selectedCheckboxes.push(parseInt($(this).data('id')));
+    });
+}
+
+// ========== 其他函数保持不变 ==========
+
+// 确认选择按钮点击事件
+function setupConfirmSelection() {
+    $('#confirmSelection').click(function() {
+        if (selectedCheckboxes.length === 0) {
+            alert('请至少选择一个分部分项工程');
+            return;
+        }
+
+        // 添加所有选中的项目
+        $('.item-checkbox:checked:visible').each(function() {
+            const $row = $(this).closest('tr');
+            selectItemFromRow($row[0]);
+        });
+
+        $('#workItemModal').modal('hide');
+
+        // 重置选择状态
+        $('.item-checkbox:visible:not(:disabled)').prop('checked', false);
+        $('#selectAll').prop('checked', false);
+        selectedCheckboxes = [];
+    });
+}
+
+// 从行选择项目
+function selectItemFromRow(rowElement) {
+    const $row = $(rowElement);
+    const itemId = parseInt($(rowElement).attr('data-id'));
+    const itemCode = $row.attr('data-code');
+    const itemName = $row.attr('data-name');
+    const itemCoefficient = parseFloat($row.attr('data-coefficient'));
+    const itemUnit = $row.attr('data-unit');
+
+    console.log("选择项目:", {
+        id: itemId,
+        code: itemCode,
+        name: itemName,
+        coefficient: itemCoefficient,
+        unit: itemUnit
+    });
+
+    // 检查是否是有效数字
+    if (isNaN(itemCoefficient)) {
+        console.error("系数不是有效数字:", $row.attr('data-coefficient'));
+        alert("数据错误：系数值无效");
+        return;
+    }
+
+    // 检查是否已选择
+    if (selectedItems.includes(itemId)) {
+        alert('该分部分项工程已添加，请勿重复添加！');
+        return;
+    }
+
+    // 添加到表格
+    addWorkItemRow(itemId, itemCode, itemName, itemCoefficient, itemUnit);
+
+    // 更新按钮状态
+    updateModalButtonStates();
+}
+
+// 添加到申请表格
+function addWorkItemRow(itemId, itemCode, itemName, coefficient, unit) {
+    rowCounter++;
+
+    // 确保系数是数字
+    if (typeof coefficient !== 'number' || isNaN(coefficient)) {
+        coefficient = 0;
+        console.warn("系数无效，使用默认值0");
+    }
+
+    // 安全处理单位
+    if (!unit) unit = '';
+
+    // 计算当前序号（表格行数+1）
+    const serialNumber = $('#workItemsBody tr').length + 1;
+
+    // 创建行HTML - 隐藏用工系数和所需用工，增加拟申请用工列
+    const rowHtml = `
+    <tr id="workItemRow_${rowCounter}" class="work-item-row" data-item-id="${itemId}">
+        <td class="serial-number">${serialNumber}</td>
+        <td>
+            <div class="d-flex align-items-center">
+                <span class="badge bg-info me-2">${escapeHtml(itemCode)}</span>
+                <strong>${escapeHtml(itemName)}</strong>
+            </div>
+        </td>
+        <td class="coefficient-hidden">***</td>
+        <td>${escapeHtml(unit)}</td>
+        <td>
+            <div class="input-group input-group-sm">
+                <input type="number" class="form-control quantity-input"
+                       data-row-id="${rowCounter}"
+                       value="1.00" min="0.01" step="0.01" required>
+                <span class="input-group-text">${escapeHtml(unit)}</span>
+            </div>
+        </td>
+        <td>
+            <span class="required-labor coefficient-hidden" id="requiredLabor_${rowCounter}">***</span>
+        </td>
+        <td>
+            <div class="input-group input-group-sm">
+                <input type="number" class="form-control proposed-input"
+                       data-row-id="${rowCounter}"
+                       value="" min="0.01" step="0.01" required
+                       placeholder="请输入">
+                <span class="input-group-text">人工</span>
+            </div>
+            <div class="form-text" style="font-size: 0.8rem;">必填</div>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-danger delete-row-btn"
+                    onclick="removeWorkItemRow(${rowCounter}, ${itemId})">
+                <i class="fas fa-trash"></i>
+            </button>
+        </td>
+    </tr>`;
+
+    $('#workItemsBody').append(rowHtml);
+    selectedItems.push(itemId);
+
+    // 绑定工程量输入事件
+    $(`#workItemRow_${rowCounter} .quantity-input`).on('input', function() {
+        calculateRowLabor(rowCounter, coefficient);
+        calculateTotalLabor();
+        updateWorkItemsData();
+    });
+
+    // 绑定拟申请用工输入事件
+    $(`#workItemRow_${rowCounter} .proposed-input`).on('input', function() {
+        calculateTotalUserProposed();
+        updateWorkItemsData();
+    });
+
+    // 初始计算
+    calculateRowLabor(rowCounter, coefficient);
+    calculateTotalLabor();
+    calculateTotalUserProposed();
+    updateWorkItemsData();
+}
+
+// 计算单行所需人工
+function calculateRowLabor(rowId, coefficient) {
+    const quantity = parseFloat($(`#workItemRow_${rowId} .quantity-input`).val()) || 0;
+    return quantity * coefficient;
+}
+
+// 计算系统总人工数
+function calculateTotalLabor() {
+    let totalLabor = 0;
+
+    $('.work-item-row').each(function() {
+        const rowId = $(this).attr('id').split('_')[1];
+        const coefficient = parseFloat($(this).find('td:nth-child(3)').text().replace('***', '0')) || 0;
+        totalLabor += calculateRowLabor(rowId, coefficient);
+    });
+
+    $('#totalLabor').text(totalLabor.toFixed(2));
+    return totalLabor;
+}
+
+// 计算用户拟申请总人工数
+function calculateTotalUserProposed() {
+    let totalProposed = 0;
+
+    $('.proposed-input').each(function() {
+        const value = parseFloat($(this).val()) || 0;
+        totalProposed += value;
+    });
+
+    $('#totalUserProposed').text(totalProposed.toFixed(2));
+    return totalProposed;
+}
+
+
+// 移除工作项行 - 修正版
+function removeWorkItemRow(rowId, itemId) {
+    if (!confirm('确定要删除此项吗？')) {
+        return;
+    }
+
+    // 使用传入的rowId而不是全局rowCounter
+    $(`#workItemRow_${rowId}`).remove();
+
+    // 从selectedItems中移除
+    const index = selectedItems.indexOf(itemId);
+    if (index > -1) {
+        selectedItems.splice(index, 1);
+    }
+
+    // 重新计算序号
+    updateSerialNumbers();
+    calculateTotalLabor();
+    calculateTotalUserProposed();
+    updateWorkItemsData();
+    updateModalButtonStates();
+}
+
+// 更新序号
+function updateSerialNumbers() {
+    $('#workItemsBody tr').each(function(index) {
+        $(this).find('.serial-number').text(index + 1);
+    });
+}
+
+// 更新隐藏字段的数据
+function updateWorkItemsData() {
+    const workItemsData = [];
+
+    $('.work-item-row').each(function() {
+        const itemId = $(this).data('item-id');
+        const quantity = parseFloat($(this).find('.quantity-input').val()) || 0;
+        const userProposedLabor = parseFloat($(this).find('.proposed-input').val()) || 0;
+
+        if (itemId && quantity > 0 && userProposedLabor > 0) {
+            workItemsData.push({
+                work_item_id: itemId,
+                quantity: quantity,
+                user_proposed_labor: userProposedLabor
+            });
+        }
+    });
+
+    $('#workItemsData').val(JSON.stringify(workItemsData));
+    console.log("工作项数据:", workItemsData);
+}
+
+// 更新模态框按钮状态
+function updateModalButtonStates() {
+    $('#workItemSelectionTable tbody tr').each(function() {
+        const itemId = parseInt($(this).attr('data-id'));
+        const checkbox = $(this).find('.item-checkbox');
+
+        if (selectedItems.includes(itemId)) {
+            checkbox.prop('disabled', true);
+            checkbox.prop('checked', false);
+            $(this).addClass('table-success');
+        } else {
+            checkbox.prop('disabled', false);
+            $(this).removeClass('table-success');
+        }
+    });
+
+    // 更新全选状态
+    updateSelectAllState();
+}
+
+// 筛选工作项
+function filterWorkItems() {
+    const searchText = $('#searchItem').val().toLowerCase();
+    const selectedCategory = $('#filterCategory').val();
+
+    $('#workItemSelectionTable tbody tr').each(function() {
+        const itemCode = $(this).attr('data-code').toLowerCase();
+        const itemName = $(this).attr('data-name').toLowerCase();
+        const itemCategory = $(this).attr('data-category');
+
+        let showRow = true;
+
+        if (searchText) {
+            if (!itemCode.includes(searchText) && !itemName.includes(searchText)) {
+                showRow = false;
+            }
+        }
+
+        if (selectedCategory && itemCategory !== selectedCategory) {
+            showRow = false;
+        }
+
+        if (showRow) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+
+    // 筛选后更新全选状态
+    updateSelectAllState();
+}
+
+// 转义HTML函数
+function escapeHtml(text) {
+    if (text == null) return '';
+    return String(text)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+</script>
+{% endblock %}

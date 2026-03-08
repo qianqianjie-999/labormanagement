@@ -1,0 +1,1035 @@
+<!-- templates/user/history.html - 申请历史页面（详情界面美化版） -->
+{% extends "base.html" %}
+
+{% block title %}申请历史 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<h1 class="mb-4">
+    <i class="fas fa-history"></i> 用工申请历史
+    <small class="text-muted">查看和管理申请记录</small>
+</h1>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========== 表格样式优化 ========== */
+/* 压缩表格行高 */
+#detailsModal .table-sm {
+    font-size: 0.875rem;
+    margin-bottom: 0.5rem;
+}
+
+#detailsModal .table-sm th,
+#detailsModal .table-sm td {
+    padding: 0.35rem 0.5rem;
+    vertical-align: middle;
+    line-height: 1.3;
+}
+
+#detailsModal .table-sm thead th {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+/* 紧凑表格布局 */
+.compact-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    table-layout: fixed;
+}
+
+.compact-table th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.4rem 0.6rem;
+    vertical-align: middle;
+}
+
+.compact-table td {
+    padding: 0.35rem 0.6rem;
+    border-bottom: 1px solid #e9ecef;
+    vertical-align: middle;
+    line-height: 1.2;
+}
+
+.compact-table tbody tr:hover {
+    background-color: #f8fafc;
+}
+
+/* 紧凑的徽章样式 */
+.badge-sm {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+    font-weight: 500;
+}
+
+/* 紧凑的表单控件 */
+.form-control-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    border-radius: 0.2rem;
+}
+
+/* ========== 模态框优化 ========== */
+#detailsModal .modal-body {
+    padding: 1rem 1.25rem;
+    max-height: 70vh;
+    overflow-y: auto;
+}
+
+#detailsModal .modal-header {
+    padding: 0.75rem 1.25rem;
+    border-bottom: 1px solid #dee2e6;
+}
+
+#detailsModal .modal-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+#detailsModal .modal-footer {
+    padding: 0.75rem 1.25rem;
+    border-top: 1px solid #dee2e6;
+}
+
+/* 卡片紧凑布局 */
+.compact-card .card-body {
+    padding: 0.75rem 1rem;
+}
+
+.compact-card .card-header {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+}
+
+/* 信息展示区域 */
+.info-section {
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.info-section:last-child {
+    margin-bottom: 0;
+    border-bottom: none;
+}
+
+.info-section h6 {
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #495057;
+    padding-bottom: 0.25rem;
+    border-bottom: 1px dashed #dee2e6;
+}
+
+/* ========== 申请详情表格优化 ========== */
+.detail-table {
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+}
+
+.detail-table th {
+    width: 130px;
+    white-space: nowrap;
+    background-color: #f8f9fa;
+    font-weight: 500;
+    color: #495057;
+}
+
+.detail-table td {
+    word-wrap: break-word;
+    max-width: 0;
+}
+
+.detail-table tr:last-child td {
+    border-bottom: none;
+}
+
+/* 多行文本处理 */
+.multiline-text {
+    max-height: 80px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    background-color: #f8f9fa;
+    padding: 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    line-height: 1.3;
+    border: 1px solid #e9ecef;
+}
+
+.multiline-text::-webkit-scrollbar {
+    width: 6px;
+}
+
+.multiline-text::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 3px;
+}
+
+.multiline-text::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 3px;
+}
+
+.multiline-text::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* ========== 工程明细表格优化 ========== */
+.work-items-table {
+    font-size: 0.8rem;
+    margin-top: 0.5rem;
+}
+
+.work-items-table th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 0.4rem 0.5rem;
+    background-color: #e9ecef;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.work-items-table td {
+    padding: 0.35rem 0.5rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f3f4;
+}
+
+.work-items-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.work-items-table .code-badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.3rem;
+    margin-right: 0.3rem;
+}
+
+.work-items-table .item-name {
+    font-size: 0.85rem;
+    line-height: 1.2;
+    margin-bottom: 0.1rem;
+}
+
+.work-items-table tfoot td {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    padding: 0.5rem;
+    border-top: 2px solid #dee2e6;
+}
+
+/* 隐藏系数的样式 */
+.coefficient-hidden {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 0.85rem;
+}
+
+/* 列宽优化 */
+.col-index { width: 40px; }
+.col-code { width: 80px; }
+.col-name { min-width: 180px; max-width: 200px; }
+.col-coefficient { width: 80px; }
+.col-unit { width: 80px; }
+.col-quantity { width: 90px; }
+.col-system { width: 90px; }
+.col-user { width: 90px; }
+.col-action { width: 60px; }
+
+/* ========== 统计卡片优化 ========== */
+.stats-card .card-body {
+    padding: 0.75rem;
+}
+
+.stats-card .card-title {
+    font-size: 0.85rem;
+    margin-bottom: 0.25rem;
+    font-weight: 500;
+}
+
+.stats-card h2 {
+    font-size: 1.5rem;
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+/* ========== 按钮优化 ========== */
+.btn-group-sm > .btn {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+}
+
+.btn-group-sm > .btn i {
+    font-size: 0.8rem;
+}
+
+/* ========== 申请列表表格优化 ========== */
+#applicationsTable th,
+#applicationsTable td {
+    padding: 0.5rem 0.75rem;
+    vertical-align: middle;
+    font-size: 0.875rem;
+}
+
+#applicationsTable th {
+    font-weight: 600;
+    background-color: #f8f9fa;
+}
+
+#applicationsTable .badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.4rem;
+}
+
+/* ========== 状态徽章优化 ========== */
+.status-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.status-pending { background-color: #ffc107; color: #212529; }
+status-approved { background-color: #198754; color: white; }
+.status-rejected { background-color: #dc3545; color: white; }
+
+/* ========== 响应式优化 ========== */
+@media (max-width: 768px) {
+    .compact-table th,
+    .compact-table td {
+        padding: 0.3rem 0.4rem;
+        font-size: 0.8rem;
+    }
+
+    .work-items-table {
+        font-size: 0.75rem;
+    }
+
+    .work-items-table th {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.4rem;
+    }
+
+    .work-items-table td {
+        padding: 0.25rem 0.4rem;
+    }
+}
+
+/* 模态框滚动优化 */
+#detailsModal .modal-content {
+    max-height: 85vh;
+    display: flex;
+    flex-direction: column;
+}
+
+#detailsModal .modal-body {
+    flex: 1;
+    overflow-y: auto;
+}
+
+/* 分割线优化 */
+.section-divider {
+    margin: 1rem 0;
+    border-top: 1px solid #e9ecef;
+}
+
+/* 标签样式 */
+.info-label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+.info-value {
+    font-weight: 400;
+    color: #212529;
+    font-size: 0.875rem;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- 统计信息（保持原样） -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white stats-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">总申请数</h5>
+                        <h2>{{ applications|length }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-success text-white stats-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">已批准</h5>
+                        <h2>{{ applications|selectattr('status', 'equalto', 'approved')|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-warning text-white stats-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">待处理</h5>
+                        <h2>{{ applications|selectattr('status', 'equalto', 'pending')|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card bg-danger text-white stats-card">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">已拒绝</h5>
+                        <h2>{{ applications|selectattr('status', 'equalto', 'rejected')|list|length }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 申请列表（保持原样） -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-list"></i> 申请记录列表
+                <span class="badge bg-light text-primary ms-2">{{ applications|length }} 条记录</span>
+            </div>
+            <div class="card-body">
+                {% if applications %}
+                <div class="table-responsive">
+                    <table class="table table-hover" id="applicationsTable">
+                        <thead>
+                            <tr>
+                                <th>申请编号</th>
+                                <th>项目名称</th>
+                                <th>分部分项工程</th>
+                                {% if current_user.is_admin %}
+                                <th>系统计算用工</th>
+                                {% endif %}
+                                <th>{{ '审批后用工' if current_user.is_admin else '申请用工' }}</th>
+                                <th>申请部门</th>
+                                <th>申请时间</th>
+                                <th>状态</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for app in applications %}
+                            <tr>
+                                <td><span class="badge bg-secondary badge-sm">#{{ app.id }}</span></td>
+                                <td><strong>{{ app.project_name }}</strong></td>
+                                <td>
+                                    {% if app.items and app.items|length > 0 %}
+                                        {% set first_item = app.items[0] %}
+                                        {% set work_item_data = first_item.get_work_item_data() %}
+                                        {{ work_item_data['name'] if work_item_data else '未知' }}
+                                        {% if app.items|length > 1 %}
+                                            <br><small class="text-muted">等{{ app.items|length }}项</small>
+                                        {% endif %}
+                                    {% else %}
+                                        无明细
+                                    {% endif %}
+                                </td>
+                                {% if current_user.is_admin %}
+                                <td>
+                                    <span class="badge bg-info badge-sm">{{ "%.2f"|format(app.total_required_labor) }} 人工</span>
+                                </td>
+                                {% endif %}
+                                <td>
+                                    {% if app.approved_labor %}
+                                        <span class="badge bg-success badge-sm">{{ "%.2f"|format(app.approved_labor) }} 人工</span>
+                                    {% else %}
+                                        <span class="badge bg-warning badge-sm">{{ "%.2f"|format(app.total_user_proposed if app.total_user_proposed else app.total_required_labor) }} 人工</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ app.department }}</td>
+                                <td>{{ app.local_created_at[:16] if app.local_created_at else '' }}</td>
+                                <td>
+                                    {% if app.status == 'pending' %}
+                                        <span class="badge status-badge status-pending">待处理</span>
+                                    {% elif app.status == 'approved' %}
+                                        <span class="badge status-badge status-approved">已批准</span>
+                                    {% elif app.status == 'rejected' %}
+                                        <span class="badge status-badge status-rejected">已拒绝</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary badge-sm">{{ app.status }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <!-- PDF导出按钮 -->
+                                        <a href="{{ url_for('export_pdf', application_id=app.id) }}"
+                                           class="btn btn-outline-primary" title="导出PDF">
+                                            <i class="fas fa-file-pdf"></i>
+                                        </a>
+
+                                        <!-- 查看详情按钮 -->
+                                        <button class="btn btn-outline-info"
+                                                onclick="showApplicationDetails({{ app.id }})"
+                                                title="查看详情">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+
+                                        <!-- 修改按钮 -->
+                                        {% if app.status in ['pending', 'rejected'] and (current_user.is_admin or app.applicant == current_user.display_name) %}
+                                        <button class="btn btn-outline-warning"
+                                                onclick="editApplication({{ app.id }})"
+                                                title="修改申请">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        {% endif %}
+
+                                        <!-- 管理员操作按钮 -->
+                                        {% if current_user.is_admin %}
+                                            {% if app.status == 'pending' %}
+                                            <button class="btn btn-outline-success"
+                                                    onclick="approveApplication({{ app.id }})"
+                                                    title="批准申请">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            <button class="btn btn-outline-danger"
+                                                    onclick="rejectApplication({{ app.id }})"
+                                                    title="拒绝申请">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                            {% elif app.status == 'rejected' %}
+                                            <button class="btn btn-outline-success"
+                                                    onclick="approveApplication({{ app.id }})"
+                                                    title="批准申请">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                            {% endif %}
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-folder-open fa-4x text-muted mb-3"></i>
+                    <h4>暂无申请记录</h4>
+                    <p class="text-muted">您还没有提交过用工申请</p>
+                    <a href="{{ url_for('user_apply') }}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 创建第一个申请
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 详情模态框（保持原样，样式已通过CSS优化） -->
+<div class="modal fade" id="detailsModal" tabindex="-1">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">申请详情 #<span id="detailId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="detailsContent">
+                <!-- 详情内容将通过AJAX加载 -->
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">加载中...</span>
+                    </div>
+                    <p class="mt-2">正在加载详情...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                <a href="#" class="btn btn-primary" id="pdfDownloadBtn">
+                    <i class="fas fa-download"></i> 下载PDF
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 审批模态框（保持原样） -->
+<div class="modal fade" id="approvalModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">审批申请 #<span id="approvalId"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="approvalType" class="form-label">审批类型：</label>
+                    <select class="form-select" id="approvalType">
+                        <option value="approved">批准</option>
+                        <option value="rejected">拒绝</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="approvedLabor" class="form-label">审批后人工数：</label>
+                    <input type="number" class="form-control" id="approvedLabor"
+                           step="0.01" min="0" placeholder="请输入审批后的人工数">
+                    <div class="form-text">系统计算：<span id="systemCalculated">0.00</span> | 用户申请：<span id="userProposed">0.00</span></div>
+                </div>
+                <div class="mb-3">
+                    <label for="approvalComment" class="form-label">审批意见：</label>
+                    <textarea class="form-control" id="approvalComment" rows="3" placeholder="请输入审批意见"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="submitApproval">提交审批</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let currentApplicationId = null;
+
+$(document).ready(function() {
+    console.log("申请历史页面加载完成");
+
+    // 如果是管理员，监听审批提交按钮
+    {% if current_user.is_admin %}
+    $('#submitApproval').click(function() {
+        submitApproval();
+    });
+
+    $('#approvalType').change(function() {
+        if ($(this).val() === 'rejected') {
+            $('#approvedLabor').prop('disabled', true).val('');
+        } else {
+            $('#approvedLabor').prop('disabled', false);
+        }
+    });
+    {% endif %}
+});
+
+// 转义HTML
+function escapeHtml(text) {
+    if (text == null) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// UTC转本地时间
+function utcToLocal(utcTimeStr) {
+    if (!utcTimeStr) return '未知时间';
+
+    try {
+        if (utcTimeStr.includes('+08:00') || utcTimeStr.includes('+08')) {
+            return utcTimeStr.replace('+08:00', '').replace('+08', '').trim();
+        }
+
+        let dateStr = utcTimeStr;
+        if (!dateStr.includes('+') && !dateStr.includes('Z') && !dateStr.includes('T')) {
+            dateStr = dateStr.replace(' ', 'T') + 'Z';
+        }
+
+        const date = new Date(dateStr);
+        return date.toLocaleString('zh-CN', {
+            timeZone: 'Asia/Shanghai',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            hour12: false
+        }).replace(/\//g, '-');
+
+    } catch (e) {
+        console.error('时间转换错误:', e, '原始时间:', utcTimeStr);
+        return utcTimeStr;
+    }
+}
+
+// 显示申请详情
+function showApplicationDetails(appId) {
+    console.log("显示申请详情，ID:", appId);
+    currentApplicationId = appId;
+    $('#detailId').text(appId);
+    $('#pdfDownloadBtn').attr('href', '/export/pdf/' + appId);
+
+    $('#detailsContent').html(`
+        <div class="text-center">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">加载中...</span>
+            </div>
+            <p class="mt-2">正在加载申请详情...</p>
+        </div>
+    `);
+
+    $('#detailsModal').modal('show');
+
+    $.ajax({
+        url: '/api/application/' + appId,
+        type: 'GET',
+        success: function(response) {
+            console.log("获取申请详情成功:", response);
+            if (response.success) {
+                renderApplicationDetails(response.application);
+            } else {
+                $('#detailsContent').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        加载失败: ${response.message || '未知错误'}
+                    </div>
+                `);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error("获取申请详情失败:", xhr.responseText);
+            $('#detailsContent').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    网络错误，无法加载详情<br>
+                    状态: ${xhr.status}<br>
+                    错误: ${error}
+                </div>
+            `);
+        }
+    });
+}
+
+// 格式化多行文本函数
+function formatMultilineText(text) {
+    if (!text || text.trim() === '') {
+        return '<span class="text-muted">无</span>';
+    }
+
+    // 转义HTML，保留换行符
+    const div = document.createElement('div');
+    div.textContent = text;
+    const escapedText = div.innerHTML;
+
+    // 将换行符转换为<br>标签
+    return escapedText.replace(/\n/g, '<br>');
+}
+
+// 渲染申请详情（优化版）
+function renderApplicationDetails(app) {
+    console.log("渲染申请详情:", app);
+
+    const isAdmin = {% if current_user.is_admin %}true{% else %}false{% endif %};
+
+    let detailsHtml = '';
+
+    // 第一部分：申请信息和汇总信息
+    detailsHtml += `
+        <div class="info-section">
+            <h6>申请信息</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm detail-table">
+                        <tr><th class="info-label">申请编号：</th><td class="info-value">#${app.id}</td></tr>
+                        <tr><th class="info-label">项目名称：</th><td class="info-value">${escapeHtml(app.project_name)}</td></tr>
+                        <tr><th class="info-label">申请部门：</th><td class="info-value">${escapeHtml(app.department)}</td></tr>
+                        <tr><th class="info-label">申请人员：</th><td class="info-value">${escapeHtml(app.applicant)}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm detail-table">
+                        <tr><th class="info-label">申请时间：</th><td class="info-value">${app.local_created_at || utcToLocal(app.created_at)}</td></tr>
+                        <tr><th class="info-label">申请状态：</th><td class="info-value">
+                            ${app.status === 'pending' ? '<span class="badge status-badge status-pending">待处理</span>' :
+                              app.status === 'approved' ? '<span class="badge status-badge status-approved">已批准</span>' :
+                              '<span class="badge status-badge status-rejected">已拒绝</span>'}
+                        </td></tr>
+                        ${isAdmin ? `
+                        <tr><th class="info-label">系统计算总用工：</th>
+                            <td class="info-value"><span class="badge bg-info badge-sm">${parseFloat(app.total_required_labor).toFixed(2)} 人工</span></td></tr>
+                        ` : ''}
+                        <tr><th class="info-label">${isAdmin ? '用户申请总用工：' : '您申请总用工：'}</th>
+                            <td class="info-value"><span class="badge bg-warning badge-sm">${parseFloat(app.total_user_proposed || app.total_required_labor).toFixed(2)} 人工</span></td></tr>
+                        ${app.approved_labor ? `
+                        <tr><th class="info-label">审批后总用工：</th>
+                            <td class="info-value"><span class="badge bg-success badge-sm">${parseFloat(app.approved_labor).toFixed(2)} 人工</span></td></tr>
+                        ` : ''}
+                    </table>
+                </div>
+            </div>
+
+            ${app.project_description ? `
+            <div class="mt-2">
+                <div class="info-label">项目说明：</div>
+                <div class="multiline-text">${formatMultilineText(app.project_description)}</div>
+            </div>
+            ` : ''}
+        </div>`;
+
+    // 第二部分：分部分项工程明细
+    if (app.items && app.items.length > 0) {
+        detailsHtml += `
+        <div class="info-section">
+            <h6>分部分项工程明细</h6>
+            <div class="table-responsive">
+                <table class="table work-items-table compact-table">
+                    <thead>
+                        <tr>`;
+
+        if (isAdmin) {
+            // 管理员：显示完整表格
+            detailsHtml += `
+                            <th class="col-index">序号</th>
+                            <th class="col-code">代码</th>
+                            <th class="col-name">分部分项</th>
+                            <th class="col-coefficient">系数</th>
+                            <th class="col-unit">单位</th>
+                            <th class="col-quantity">工程量</th>
+                            <th class="col-system">系统计算</th>
+                            <th class="col-user">用户申请</th>`;
+        } else {
+            // 普通用户：隐藏系数
+            detailsHtml += `
+                            <th class="col-index">序号</th>
+                            <th class="col-code">代码</th>
+                            <th class="col-name">分部分项</th>
+                            <th class="col-unit">单位</th>
+                            <th class="col-quantity">工程量</th>
+                            <th class="col-system">系统计算</th>
+                            <th class="col-user">拟申请用工</th>`;
+        }
+
+        detailsHtml += `
+                        </tr>
+                    </thead>
+                    <tbody>`;
+
+        let totalLabor = 0;
+        let totalUserProposed = 0;
+
+        app.items.forEach(function(item, index) {
+            const workItem = item.work_item || {};
+            const quantity = parseFloat(item.quantity) || 0;
+            const requiredLabor = parseFloat(item.required_labor) || 0;
+            const userProposedLabor = parseFloat(item.user_proposed_labor) || requiredLabor;
+
+            totalLabor += requiredLabor;
+            totalUserProposed += userProposedLabor;
+
+            if (isAdmin) {
+                // 管理员：显示完整信息
+                detailsHtml += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td><span class="badge bg-info badge-sm code-badge">${escapeHtml(workItem.code || 'N/A')}</span></td>
+                        <td class="item-name">${escapeHtml(workItem.name || '未知')}</td>
+                        <td class="text-end">${parseFloat(workItem.labor_coefficient || 0).toFixed(2)}</td>
+                        <td>${escapeHtml(workItem.unit || '')}</td>
+                        <td class="text-end">${quantity.toFixed(2)}</td>
+                        <td class="text-end"><span class="badge bg-info badge-sm">${requiredLabor.toFixed(2)}</span></td>
+                        <td class="text-end"><span class="badge bg-warning badge-sm">${userProposedLabor.toFixed(2)}</span></td>
+                    </tr>`;
+            } else {
+                // 普通用户：隐藏系数
+                detailsHtml += `
+                    <tr>
+                        <td class="text-center">${index + 1}</td>
+                        <td><span class="badge bg-info badge-sm code-badge">${escapeHtml(workItem.code || 'N/A')}</span></td>
+                        <td class="item-name">${escapeHtml(workItem.name || '未知')}</td>
+                        <td>${escapeHtml(workItem.unit || '')}</td>
+                        <td class="text-end">${quantity.toFixed(2)}</td>
+                        <td class="text-center coefficient-hidden">***</td>
+                        <td class="text-end"><span class="badge bg-warning badge-sm">${userProposedLabor.toFixed(2)}</span></td>
+                    </tr>`;
+            }
+        });
+
+        // 表格页脚
+        detailsHtml += `
+                    </tbody>
+                    <tfoot>`;
+
+        if (isAdmin) {
+            detailsHtml += `
+                        <tr>
+                            <td colspan="6" class="text-end"><strong>系统计算合计：</strong></td>
+                            <td class="text-end"><strong>${totalLabor.toFixed(2)} 人工</strong></td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td colspan="7" class="text-end"><strong>用户申请合计：</strong></td>
+                            <td class="text-end"><strong>${totalUserProposed.toFixed(2)} 人工</strong></td>
+                        </tr>`;
+        } else {
+            detailsHtml += `
+                        <tr>
+                            <td colspan="6" class="text-end"><strong>您申请合计：</strong></td>
+                            <td class="text-end"><strong>${totalUserProposed.toFixed(2)} 人工</strong></td>
+                        </tr>`;
+        }
+
+        detailsHtml += `
+                    </tfoot>
+                </table>
+            </div>
+        </div>`;
+    }
+
+    // 第三部分：审批信息（如果有）
+    if (app.approved_by || app.approval_comment) {
+        detailsHtml += `
+        <div class="info-section">
+            <h6>审批信息</h6>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm detail-table">
+                        <tr><th class="info-label">审批人：</th><td class="info-value">${escapeHtml(app.approved_by || '待审批')}</td></tr>
+                        <tr><th class="info-label">审批时间：</th><td class="info-value">${app.local_approval_time || utcToLocal(app.approval_time) || '待审批'}</td></tr>
+                        ${app.approved_labor ? `
+                        <tr><th class="info-label">审批后人工：</th><td class="info-value"><span class="badge bg-success badge-sm">${parseFloat(app.approved_labor).toFixed(2)} 人工</span></td></tr>
+                        ` : ''}
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    ${app.approval_comment ? `
+                    <div class="info-label">审批意见：</div>
+                    <div class="multiline-text">${formatMultilineText(app.approval_comment)}</div>
+                    ` : ''}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    // 第四部分：工人名单（如果有）
+    if (app.worker_names && app.worker_names.trim()) {
+        detailsHtml += `
+        <div class="info-section">
+            <h6>工人名单及其它说明</h6>
+            <div class="multiline-text">${formatMultilineText(app.worker_names)}</div>
+        </div>`;
+    }
+
+    console.log("生成的HTML长度:", detailsHtml.length);
+    $('#detailsContent').html(detailsHtml);
+}
+
+// 编辑申请
+function editApplication(appId) {
+    console.log("编辑申请，ID:", appId);
+    window.location.href = '/user/apply/edit/' + appId;
+}
+
+// 管理员审批申请
+{% if current_user.is_admin %}
+function approveApplication(appId) {
+    showApprovalModal(appId, 'approved');
+}
+
+function rejectApplication(appId) {
+    showApprovalModal(appId, 'rejected');
+}
+
+// 显示审批模态框
+function showApprovalModal(appId, type) {
+    currentApplicationId = appId;
+    $('#approvalId').text(appId);
+    $('#approvalType').val(type);
+
+    if (type === 'rejected') {
+        $('#approvedLabor').prop('disabled', true).val('');
+    } else {
+        $('#approvedLabor').prop('disabled', false);
+    }
+
+    // 获取申请详情以显示系统计算和用户申请数据
+    $.ajax({
+        url: '/api/application/' + appId,
+        type: 'GET',
+        success: function(response) {
+            if (response.success) {
+                const app = response.application;
+                $('#systemCalculated').text(parseFloat(app.total_required_labor).toFixed(2));
+                $('#userProposed').text(parseFloat(app.total_user_proposed || app.total_required_labor).toFixed(2));
+
+                // 默认填写用户申请的值
+                if (type === 'approved') {
+                    $('#approvedLabor').val(parseFloat(app.total_user_proposed || app.total_required_labor).toFixed(2));
+                }
+            }
+        }
+    });
+
+    $('#approvalModal').modal('show');
+}
+
+// 提交审批
+function submitApproval() {
+    const status = $('#approvalType').val();
+    const approvedLabor = $('#approvedLabor').val();
+    const approvalComment = $('#approvalComment').val().trim();
+
+    if (status === 'approved' && !approvedLabor) {
+        alert('请填写审批后人工数');
+        return;
+    }
+
+    // 准备数据
+    const data = {
+        status: status,
+        approval_comment: approvalComment,
+        approved_labor: status === 'approved' ? parseFloat(approvedLabor) : null
+    };
+
+    console.log("提交审批数据:", data);
+
+    // 显示加载状态
+    const submitBtn = $('#submitApproval');
+    const originalText = submitBtn.html();
+    submitBtn.html('<i class="fas fa-spinner fa-spin"></i> 提交中...');
+    submitBtn.prop('disabled', true);
+
+    // 发送审批请求
+    $.ajax({
+        url: '/api/application/' + currentApplicationId + '/status',
+        type: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function(response) {
+            console.log("审批响应:", response);
+            if (response.success) {
+                $('#approvalModal').modal('hide');
+                alert(response.message);
+
+                // 延迟重载页面以显示最新状态
+                setTimeout(function() {
+                    location.reload();
+                }, 500);
+
+            } else {
+                alert('操作失败: ' + (response.message || '未知错误'));
+                submitBtn.html(originalText);
+                submitBtn.prop('disabled', false);
+            }
+        },
+        error: function(xhr) {
+            console.error("审批错误:", xhr);
+            let errorMessage = '网络错误，请重试';
+            try {
+                const response = JSON.parse(xhr.responseText);
+                errorMessage = response.message || errorMessage;
+            } catch (e) {}
+            alert('操作失败: ' + errorMessage);
+            submitBtn.html(originalText);
+            submitBtn.prop('disabled', false);
+        }
+    });
+}
+{% endif %}
+</script>
+{% endblock %}

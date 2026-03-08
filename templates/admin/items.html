@@ -1,0 +1,306 @@
+<!-- templates/admin/items.html - 分部分项工程管理页面 -->
+{% extends "base.html" %}
+
+{% block title %}分部分项工程管理 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<h1 class="mb-4">
+    <i class="fas fa-list"></i> 分部分项工程管理
+    <small class="text-muted">管理分部分项工程和人工系数</small>
+</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <!-- 添加新项目按钮 -->
+        <div class="card mb-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-plus"></i> 添加新分部分项工程
+            </div>
+            <div class="card-body">
+                <form id="addItemForm">
+                    <div class="row">
+                        <div class="col-md-2 mb-3">
+                            <label for="code" class="form-label">分部分项代码 *</label>
+                            <input type="text" class="form-control" id="code" name="code" required>
+                            <div class="form-text">例如: TJ001</div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="name" class="form-label">分部分项名称 *</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                            <div class="form-text">例如: 开挖</div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="labor_coefficient" class="form-label">单位人工系数 *</label>
+                            <input type="number" class="form-control" id="labor_coefficient" name="labor_coefficient" step="0.01" required>
+                            <div class="form-text">例如: 0.2</div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="unit" class="form-label">计量单位 *</label>
+                            <input type="text" class="form-control" id="unit" name="unit" required>
+                            <div class="form-text">例如: m3, 个</div>
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label for="category" class="form-label">所属分类 *</label>
+                            <input type="text" class="form-control" id="category" name="category" required>
+                            <div class="form-text">例如: 基础开挖</div>
+                        </div>
+                        <div class="col-md-2 mb-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-save"></i> 添加
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- 项目列表 -->
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-table"></i> 分部分项工程列表
+                <span class="badge bg-light text-primary ms-2">{{ items|length }} 个项目</span>
+            </div>
+            <div class="card-body">
+                {% if items %}
+                <div class="table-responsive">
+                    <table class="table table-hover table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>分部分项代码</th>
+                                <th>分部分项名称</th>
+                                <th>单位人工系数</th>
+                                <th>计量单位</th>
+                                <th>所属分类</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in items %}
+                            <tr>
+                                <td>{{ item.id }}</td>
+                                <td><span class="badge bg-info">{{ item.code }}</span></td>
+                                <td><strong>{{ item.name }}</strong></td>
+                                <td><span class="badge bg-warning">{{ item.labor_coefficient }}</span></td>
+                                <td>{{ item.unit }}</td>
+                                <td><span class="badge bg-secondary">{{ item.category }}</span></td>
+                                <td>{{ item.created_at.strftime('%Y-%m-%d') }}</td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary edit-btn" data-id="{{ item.id }}">
+                                        <i class="fas fa-edit"></i> 编辑
+                                    </button>
+                                    <button class="btn btn-sm btn-danger delete-btn" data-id="{{ item.id }}">
+                                        <i class="fas fa-trash"></i> 删除
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 暂无分部分项工程数据，请先添加或导入数据。
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 在最下面添加参考系数设置卡片 -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <i class="fas fa-cog"></i> 参考系数设置
+            </div>
+            <div class="card-body">
+                <p>当前参考系数：<span class="badge bg-success" id="currentCoefficient">{{ current_reference_coefficient }}</span></p>
+                <div class="input-group mb-3">
+                    <input type="number" class="form-control" id="coefficientInput"
+                           step="0.01" min="0.7" max="1.0" value="{{ current_reference_coefficient }}">
+                    <button class="btn btn-warning" id="updateCoefficientBtn">更新</button>
+                </div>
+                <p class="text-muted small">
+                    说明：此系数用于申请页面计算"参考值"（单位人工系数 × 参考系数）。
+                    <br>范围：0.7-1.0
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 编辑模态框 -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">编辑分部分项工程</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editItemForm">
+                    <input type="hidden" id="edit_item_id" name="id">
+                    <div class="mb-3">
+                        <label for="edit_code" class="form-label">分部分项代码</label>
+                        <input type="text" class="form-control" id="edit_code" name="code" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_name" class="form-label">分部分项名称</label>
+                        <input type="text" class="form-control" id="edit_name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_labor_coefficient" class="form-label">单位人工系数</label>
+                        <input type="number" class="form-control" id="edit_labor_coefficient" name="labor_coefficient" step="0.01" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_unit" class="form-label">计量单位</label>
+                        <input type="text" class="form-control" id="edit_unit" name="unit" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="edit_category" class="form-label">所属分类</label>
+                        <input type="text" class="form-control" id="edit_category" name="category" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                <button type="button" class="btn btn-primary" id="saveEditBtn">保存修改</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 添加新项目
+    $('#addItemForm').submit(function(e) {
+        e.preventDefault();
+
+        $.ajax({
+            url: '{{ url_for("api_add_item") }}',
+            type: 'POST',
+            data: $(this).serialize(),
+            success: function(response) {
+                if (response.success) {
+                    alert('添加成功！');
+                    location.reload();
+                } else {
+                    alert('添加失败：' + response.message);
+                }
+            },
+            error: function() {
+                alert('网络错误，请重试！');
+            }
+        });
+    });
+
+    // 编辑项目
+    $('.edit-btn').click(function() {
+        var itemId = $(this).data('id');
+
+        // 这里应该通过API获取项目详情
+        // 为了简化，我们直接从表格中读取数据
+        var row = $(this).closest('tr');
+
+        $('#edit_item_id').val(itemId);
+        $('#edit_code').val(row.find('td:eq(1)').text().trim());
+        $('#edit_name').val(row.find('td:eq(2)').text().trim());
+        $('#edit_labor_coefficient').val(row.find('td:eq(3)').text().trim());
+        $('#edit_unit').val(row.find('td:eq(4)').text().trim());
+        $('#edit_category').val(row.find('td:eq(5)').text().trim());
+
+        $('#editModal').modal('show');
+    });
+
+    // 保存编辑
+    $('#saveEditBtn').click(function() {
+        var data = {
+            code: $('#edit_code').val(),
+            name: $('#edit_name').val(),
+            labor_coefficient: parseFloat($('#edit_labor_coefficient').val()),
+            unit: $('#edit_unit').val(),
+            category: $('#edit_category').val()
+        };
+
+        $.ajax({
+            url: '{{ url_for("api_update_item", item_id=0) }}'.replace('0', $('#edit_item_id').val()),
+            type: 'PUT',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    alert('更新成功！');
+                    location.reload();
+                } else {
+                    alert('更新失败：' + response.message);
+                }
+            },
+            error: function() {
+                alert('网络错误，请重试！');
+            }
+        });
+    });
+
+    // 删除项目
+    $('.delete-btn').click(function() {
+        if (!confirm('确定要删除这个分部分项工程吗？')) {
+            return;
+        }
+
+        var itemId = $(this).data('id');
+
+        $.ajax({
+            url: '{{ url_for("api_delete_item", item_id=0) }}'.replace('0', itemId),
+            type: 'DELETE',
+            success: function(response) {
+                if (response.success) {
+                    alert('删除成功！');
+                    location.reload();
+                } else {
+                    alert('删除失败：' + response.message);
+                }
+            },
+            error: function() {
+                alert('网络错误，请重试！');
+            }
+        });
+    });
+
+    // 只添加参考系数更新的代码
+    $('#updateCoefficientBtn').click(function() {
+        var coefficient = parseFloat($('#coefficientInput').val());
+
+        if (isNaN(coefficient) || coefficient < 0.7 || coefficient > 1.0) {
+            alert('参考系数必须在0.7-1.0之间');
+            return;
+        }
+
+        $.ajax({
+            url: '/admin/update-reference-coefficient',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ coefficient: coefficient }),
+            success: function(response) {
+                if (response.success) {
+                    alert('参考系数已更新为 ' + coefficient);
+                    $('#currentCoefficient').text(coefficient);
+                } else {
+                    alert('更新失败：' + response.message);
+                }
+            },
+            error: function() {
+                alert('网络错误，请重试！');
+            }
+        });
+    });
+
+});
+</script>
+{% endblock %}

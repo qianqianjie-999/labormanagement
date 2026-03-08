@@ -1,0 +1,319 @@
+<!-- templates/user/index.html -->
+{% extends "base.html" %}
+
+{% block title %}首页 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<div class="header-container bg-gradient-primary rounded-3 p-4 mb-4 shadow">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h1 class="mb-2 text-white">
+                <i class="fas fa-home me-2"></i>用工申请管理系统
+            </h1>
+            <p class="lead text-white mb-0 opacity-75">
+                欢迎回来，<strong>{{ current_user.username }}</strong>！
+            </p>
+        </div>
+        <div class="text-end">
+            <div class="bg-white bg-opacity-25 p-3 rounded-3">
+                <small class="text-white-50 d-block">当前时间</small>
+                <div class="h4 mb-0 text-white" id="currentTime">
+                    {{ now.strftime('%Y-%m-%d %H:%M') if now else '--' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <!-- 左侧主功能区 -->
+    <div class="col-lg-8">
+        <!-- 系统功能简介卡片 -->
+        <div class="card border-0 shadow-lg mb-4">
+            <div class="card-header bg-gradient-primary text-white py-3 border-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-bullhorn fa-lg me-3"></i>
+                    <h4 class="mb-0">系统核心功能</h4>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <p class="text-muted mb-4">高效、便捷的用工申请管理平台，助您轻松完成申请流程</p>
+
+                <div class="row g-4">
+                    <div class="col-md-4">
+                        <div class="feature-card h-100 p-4 text-center border rounded-3 hover-lift shadow-sm transition-all">
+                            <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                                <i class="fas fa-edit fa-2x text-primary"></i>
+                            </div>
+                            <h5 class="fw-bold mb-2">用工申请</h5>
+                            <p class="text-muted small mb-3">在线填写和提交用工申请表单</p>
+                            <a href="{{ url_for('user_apply') }}" class="btn btn-primary px-4">
+                                <i class="fas fa-plus me-1"></i>开始申请
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="feature-card h-100 p-4 text-center border rounded-3 hover-lift shadow-sm transition-all">
+                            <div class="icon-wrapper bg-success bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                                <i class="fas fa-history fa-2x text-success"></i>
+                            </div>
+                            <h5 class="fw-bold mb-2">申请历史</h5>
+                            <p class="text-muted small mb-3">查看历史申请记录和审批状态</p>
+                            <a href="{{ url_for('user_apply_history') }}" class="btn btn-success px-4">
+                                <i class="fas fa-list me-1"></i>查看历史
+                            </a>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="feature-card h-100 p-4 text-center border rounded-3 hover-lift shadow-sm transition-all">
+                            <div class="icon-wrapper bg-danger bg-opacity-10 rounded-circle p-3 mb-3 d-inline-flex">
+                                <i class="fas fa-file-pdf fa-2x text-danger"></i>
+                            </div>
+                            <h5 class="fw-bold mb-2">PDF导出</h5>
+                            <p class="text-muted small mb-3">导出标准格式的用工申请文档</p>
+                            <button class="btn btn-danger px-4" disabled>
+                                <i class="fas fa-download me-1"></i>自动生成
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 快速申请入口 -->
+        <div class="card border-0 shadow-lg">
+            <div class="card-header bg-gradient-info text-white py-3 border-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-bolt fa-lg me-3"></i>
+                    <h4 class="mb-0">快速申请入口</h4>
+                </div>
+            </div>
+            <div class="card-body p-5 text-center">
+                <div class="row align-items-center">
+                    <div class="col-md-8 text-start">
+                        <h3 class="text-primary mb-2">立即开始新的用工申请</h3>
+                        <p class="text-muted mb-0">快速填写申请表单，提交后系统将自动处理并生成申请记录</p>
+                    </div>
+                    <div class="col-md-4">
+                        <a href="{{ url_for('user_apply') }}" class="btn btn-info btn-lg px-5 py-3 rounded-pill shadow">
+                            <i class="fas fa-paper-plane me-2"></i>开始申请
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 右侧用户信息区 - 长版 -->
+    <div class="col-lg-4">
+        <div class="card border-0 shadow-lg h-100">
+            <!-- 用户信息部分 -->
+            <div class="card-header bg-gradient-success text-white py-4 border-0">
+                <div class="d-flex align-items-center">
+                    <i class="fas fa-user-circle fa-lg me-3"></i>
+                    <div class="flex-grow-1">
+                        <h4 class="mb-0">用户信息</h4>
+                        <small class="opacity-75">个人信息与账户管理</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4 d-flex flex-column" style="height: 450px;">
+                <!-- 用户头像和信息 -->
+                <div class="text-center mb-4">
+                    <div class="avatar-wrapper d-inline-block position-relative mb-3">
+                        <div class="avatar-circle bg-success bg-opacity-10 rounded-circle p-4 d-inline-flex">
+                            <i class="fas fa-user fa-3x text-success"></i>
+                        </div>
+                        <span class="badge bg-success position-absolute top-0 end-0">用户</span>
+                    </div>
+                    <h3 class="fw-bold mb-1">{{ current_user.username }}</h3>
+		    <p class="text-muted">{{current_user.username}}</p>
+                </div>
+
+                <!-- 用户详情 -->
+                <div class="user-details mb-4">
+                    <h6 class="text-uppercase text-muted mb-3">
+                        <i class="fas fa-info-circle me-2"></i>账号详情
+                    </h6>
+                    <div class="list-group list-group-flush">
+                        <div class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                            <div class="icon-wrapper bg-primary bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-user-tag text-primary"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">用户角色</small>
+				<div class="fw-medium">{{current_user.username}}用户</div>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                            <div class="icon-wrapper bg-warning bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-building text-warning"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">可用功能</small>
+                                <div class="fw-medium">用工申请管理</div>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                            <div class="icon-wrapper bg-info bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-clock text-info"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">登录时间</small>
+                                <div class="fw-medium" id="loginTime">
+                                    {{ now.strftime('%Y-%m-%d %H:%M') if now else '--' }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item d-flex align-items-center border-0 px-0 py-2">
+                            <div class="icon-wrapper bg-danger bg-opacity-10 rounded-circle p-2 me-3">
+                                <i class="fas fa-key text-danger"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <small class="text-muted d-block">账户安全</small>
+                                <div class="fw-medium">密码保护</div>
+                            </div>
+                            <a href="{{ url_for('change_password') }}" class="btn btn-outline-danger btn-sm rounded-pill">
+                                <i class="fas fa-edit me-1"></i>修改密码
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.header-container {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.feature-card {
+    transition: all 0.3s ease;
+    border: 1px solid rgba(0,0,0,0.1) !important;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1) !important;
+    border-color: #4e73df !important;
+}
+
+.icon-wrapper {
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-circle {
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.avatar-wrapper .badge {
+    transform: translate(50%, -50%);
+}
+
+.btn-rounded {
+    border-radius: 50px;
+}
+
+.hover-lift {
+    transition: all 0.3s ease;
+}
+
+.hover-lift:hover {
+    transform: translateY(-3px);
+}
+
+.bg-gradient-primary {
+    background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+}
+
+.bg-gradient-success {
+    background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+}
+
+.bg-gradient-info {
+    background: linear-gradient(135deg, #36b9cc 0%, #258391 100%);
+}
+
+.list-group-item {
+    border-left: 0 !important;
+    border-right: 0 !important;
+}
+
+.alert-light {
+    background-color: rgba(248, 249, 250, 0.8);
+    border-color: rgba(222, 226, 230, 0.5) !important;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // 更新当前时间
+    function updateCurrentTime() {
+        var now = new Date();
+        var timeString = now.getFullYear() + '-' +
+                         ('0' + (now.getMonth()+1)).slice(-2) + '-' +
+                         ('0' + now.getDate()).slice(-2) + ' ' +
+                         ('0' + now.getHours()).slice(-2) + ':' +
+                         ('0' + now.getMinutes()).slice(-2);
+        $('#currentTime').text(timeString);
+    }
+
+    // 设置登录时间
+    var now = new Date();
+    var loginTimeString = now.getFullYear() + '-' +
+                         ('0' + (now.getMonth()+1)).slice(-2) + '-' +
+                         ('0' + now.getDate()).slice(-2) + ' ' +
+                         ('0' + now.getHours()).slice(-2) + ':' +
+                         ('0' + now.getMinutes()).slice(-2);
+    $('#loginTime').text(loginTimeString);
+
+    // 初始更新时间
+    updateCurrentTime();
+
+    // 每分钟更新时间
+    setInterval(updateCurrentTime, 60000);
+
+    // 添加悬停效果
+    $('.feature-card').hover(
+        function() {
+            $(this).addClass('shadow');
+        },
+        function() {
+            $(this).removeClass('shadow');
+        }
+    );
+
+    // 用户信息卡片悬停效果
+    $('.list-group-item').hover(
+        function() {
+            $(this).css('background-color', 'rgba(248, 249, 250, 0.5)');
+        },
+        function() {
+            $(this).css('background-color', '');
+        }
+    );
+});
+</script>
+{% endblock %}

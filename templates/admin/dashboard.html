@@ -1,0 +1,154 @@
+<!-- templates/admin/dashboard.html -->
+{% extends "base.html" %}
+
+{% block title %}管理面板 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<h1 class="mb-4">
+    <i class="fas fa-tachometer-alt"></i> 管理面板
+    <small class="text-muted">系统概览与快速操作</small>
+</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <!-- 统计卡片 -->
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">分部分项工程</h5>
+                        <h2 class="card-text">{{ total_items }}</h2>
+                    </div>
+                    <div class="display-4">
+                        <i class="fas fa-list"></i>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin_items') }}" class="text-white stretched-link"></a>
+            </div>
+            <div class="card-footer">
+                查看和管理
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">用工申请总数</h5>
+                        <h2 class="card-text">{{ total_applications }}</h2>
+                    </div>
+                    <div class="display-4">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                </div>
+                <a href="{{ url_for('user_apply_history') }}" class="text-white stretched-link"></a>
+
+            </div>
+            <div class="card-footer">
+                所有申请记录
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-warning">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">待处理申请</h5>
+                        <h2 class="card-text">{{ pending_applications }}</h2>
+                    </div>
+                    <div class="display-4">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                </div>
+                <a href="{{ url_for('user_apply_history') }}" class="text-white stretched-link"></a>
+            </div>
+            <div class="card-footer">
+                需要审核的申请
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3 mb-4">
+        <div class="card text-white bg-info">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h5 class="card-title">统计报表</h5>
+                        <h2 class="card-text">
+                            <i class="fas fa-chart-bar"></i>
+                        </h2>
+                    </div>
+                    <div class="display-4">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                </div>
+                <a href="{{ url_for('admin_reports') }}" class="text-white stretched-link"></a>
+            </div>
+            <div class="card-footer">
+                查看分析报表
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- 快捷操作块 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <i class="fas fa-bolt"></i> 快捷操作
+            </div>
+            <div class="card-body">
+                <div class="list-group">
+                    <a href="{{ url_for('admin_users') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-users text-info"></i> 用户管理
+                    </a>
+                    <a href="{{ url_for('admin_items') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-plus-circle text-success"></i> 添加分部分项工程
+                    </a>
+                    <a href="{{ url_for('admin_import') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-file-import text-primary"></i> 从Excel导入数据
+                    </a>
+                    <a href="{{ url_for('admin_items') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-edit text-warning"></i> 编辑分部分项系数
+                    </a>
+                    <a href="{{ url_for('user_apply_history') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-eye text-info"></i> 查看所有申请记录
+                    </a>
+                     <a href="{{ url_for('admin_reports') }}" class="list-group-item list-group-item-action">
+                        <i class="fas fa-chart-bar text-primary"></i> 查看统计报表
+                     </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 使用说明块 -->
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-secondary text-white">
+                <i class="fas fa-info-circle"></i> 使用说明
+            </div>
+            <div class="card-body">
+                <h5>管理员功能：</h5>
+                <ol>
+                    <li><strong>分部分项管理</strong>：维护工程项目的代码、名称、人工系数等</li>
+                    <li><strong>Excel导入</strong>：批量导入工程数据，支持.xlsx和.xls格式</li>
+                    <li><strong>数据维护</strong>：修改或删除已有的工程数据</li>
+                    <li><strong>系统监控</strong>：查看用工申请统计信息</li>
+                </ol>
+                <div class="alert alert-info mt-3">
+                    <i class="fas fa-lightbulb"></i>
+                    <strong>提示：</strong>Excel文件应包含以下列：分部分项代码、分部分项名称、单位人工、计量单位、所属分类
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

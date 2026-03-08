@@ -1,0 +1,165 @@
+<!-- templates/admin/import.html -->
+{% extends "base.html" %}
+
+{% block title %}Excel数据导入 - 用工申请管理系统{% endblock %}
+
+{% block header %}
+<h1 class="mb-4">
+    <i class="fas fa-file-import"></i> Excel数据导入
+    <small class="text-muted">批量导入分部分项工程数据</small>
+</h1>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <i class="fas fa-upload"></i> 上传Excel文件
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_import') }}" enctype="multipart/form-data">
+                    <div class="mb-4">
+                        <label for="excel_file" class="form-label">选择Excel文件</label>
+                        <input class="form-control" type="file" id="excel_file" name="file" accept=".xlsx,.xls" required>
+                        <div class="form-text">
+                            支持格式：.xlsx, .xls (最大16MB)
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info">
+                        <h5><i class="fas fa-info-circle"></i> Excel文件格式要求：</h5>
+                        <p>Excel文件必须包含以下5个列（列名需完全一致）：</p>
+                        <ul>
+                            <li><strong>分部分项代码</strong>：如 TJ001、TJ002 等</li>
+                            <li><strong>分部分项名称</strong>：如 开挖、浇筑 等</li>
+                            <li><strong>单位人工</strong>：人工系数，如 0.2、1、2 等（数字）</li>
+                            <li><strong>计量单位</strong>：如 m3、个、宗 等</li>
+                            <li><strong>所属分类</strong>：如 基础开挖、基础浇筑 等</li>
+                        </ul>
+                        <p class="mb-0">如果代码已存在，将更新现有记录；如果不存在，将创建新记录。</p>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-upload"></i> 开始导入
+                        </button>
+                        <a href="{{ url_for('admin_items') }}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> 返回管理列表
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Excel模板下载 -->
+        <div class="card mt-4">
+            <div class="card-header bg-success text-white">
+                <i class="fas fa-file-download"></i> 下载Excel模板
+            </div>
+            <div class="card-body text-center">
+                <p>下载标准Excel模板文件，按照格式填写后上传</p>
+                <button class="btn btn-success" onclick="downloadTemplate()">
+                    <i class="fas fa-download"></i> 下载模板文件
+                </button>
+                <div class="mt-3">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwIiBoZWlnaHQ9IjYwIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxMDAiIGhlaWdodD0iNjAiIGZpbGw9IiNlOGU4ZTgiLz48dGV4dCB4PSI1MCIgeT0iMzAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxMCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSI+PGtleXdvcmQ+PGZvbnQgc2l6ZT0iMTIiPkRvd25sb2FkPC9mb250Pjx0c3BhbiBkeT0iMTAiPkV4Y2VsIFRlbXBsYXRlPC90c3Bhbj48L2tleXdvcmQ+PC90ZXh0Pjwvc3ZnPg=="
+                         alt="Excel模板" class="img-fluid mt-2" style="max-width: 200px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- 示例数据 -->
+        <div class="card mt-4">
+            <div class="card-header bg-warning">
+                <i class="fas fa-table"></i> 示例数据格式
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm">
+                        <thead class="table-light">
+                            <tr>
+                                <th>分部分项代码</th>
+                                <th>分部分项名称</th>
+                                <th>单位人工</th>
+                                <th>计量单位</th>
+                                <th>所属分类</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>TJ001</td>
+                                <td>开挖</td>
+                                <td>0.2</td>
+                                <td>m3</td>
+                                <td>基础开挖</td>
+                            </tr>
+                            <tr>
+                                <td>TJ002</td>
+                                <td>浇筑</td>
+                                <td>1</td>
+                                <td>m3</td>
+                                <td>基础浇筑</td>
+                            </tr>
+                            <tr>
+                                <td>TJ003</td>
+                                <td>立竿</td>
+                                <td>2</td>
+                                <td>个</td>
+                                <td>立竿</td>
+                            </tr>
+                            <tr>
+                                <td>TJ004</td>
+                                <td>安装</td>
+                                <td>3</td>
+                                <td>个</td>
+                                <td>安装</td>
+                            </tr>
+                            <tr>
+                                <td>TJ005</td>
+                                <td>调试</td>
+                                <td>5</td>
+                                <td>宗</td>
+                                <td>调试</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function downloadTemplate() {
+    // 创建一个虚拟的Excel文件内容（实际项目中应该从服务器下载真实文件）
+    const templateContent = `分部分项代码,分部分项名称,单位人工,计量单位,所属分类
+TJ001,开挖,0.2,m3,基础开挖
+TJ002,浇筑,1,m3,基础浇筑
+TJ003,立竿,2,个,立竿
+TJ004,安装,3,个,安装
+TJ005,调试,5,宗,调试
+TJ006,运输,0.5,车,材料运输
+TJ007,测量,0.8,次,工程测量`;
+
+    // 创建Blob对象
+    const blob = new Blob([templateContent], { type: 'text/csv;charset=utf-8;' });
+
+    // 创建下载链接
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', '分部分项工程模板.csv');
+    link.style.visibility = 'hidden';
+
+    // 添加到页面并触发下载
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    alert('模板下载成功！请使用Excel打开并按照格式填写数据。');
+}
+</script>
+{% endblock %}
