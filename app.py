@@ -239,6 +239,24 @@ def create_app(config_name=None):
             return redirect(url_for('user_index'))
         return render_template('admin/import.html')
 
+    @app.route('/admin/reports')
+    @login_required
+    def admin_reports():
+        """报表统计页面"""
+        if not current_user.is_admin:
+            flash('需要管理员权限', 'danger')
+            return redirect(url_for('user_index'))
+        return render_template('admin/reports.html')
+
+    @app.route('/admin/users')
+    @login_required
+    def admin_users():
+        """用户管理页面"""
+        if not current_user.is_admin:
+            flash('需要管理员权限', 'danger')
+            return redirect(url_for('user_index'))
+        return render_template('admin/users.html')
+
     # =====================================================
     # 静态文件服务（开发模式）
     # =====================================================
