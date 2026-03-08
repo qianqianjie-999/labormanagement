@@ -82,6 +82,15 @@ def create_app(config_name=None):
     # 初始化数据库
     db.init_app(app)
 
+    # 初始化 Flask-Login
+    login_manager = LoginManager()
+    login_manager.init_app(app)
+    login_manager.login_view = 'login'
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        return db.session.get(User, int(user_id))
+
     # 初始化日志
     setup_logging(app)
 

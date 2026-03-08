@@ -9,7 +9,7 @@ from sqlalchemy import or_, desc
 from models import db, LaborApplication, ApplicationItem, WorkItem
 from .utils import (
     success_response, error_response, validate_json,
-    paginate_response, login_required_api
+    paginate_response, login_required_api, admin_required_api
 )
 
 applications_bp = Blueprint('api_applications', __name__, url_prefix='/api/applications')
