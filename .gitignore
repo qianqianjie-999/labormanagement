@@ -49,9 +49,10 @@ env/
 # Environment variables
 .env
 .env.local
+.env.production
 .env.*.local
-config.env
 *.env
+config.env
 
 # Database
 *.db
