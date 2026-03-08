@@ -52,6 +52,9 @@ env/
 .env.production
 .env.*.local
 *.env
+
+# Runtime config
+config.json
 config.env
 
 # Database

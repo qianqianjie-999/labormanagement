@@ -56,6 +56,9 @@ def create_app(config_name=None):
     """
     app = Flask(__name__, static_folder='static', static_url_path='/static')
 
+    # 获取基础目录
+    basedir = os.path.abspath(os.path.dirname(__file__))
+
     # 加载配置
     if config_name is None:
         config_name = os.getenv('FLASK_ENV', 'development')
@@ -426,13 +429,63 @@ def create_app(config_name=None):
     # 应用上下文处理器
     # =====================================================
 
+    # 全局参考系数（默认 1.0）
+    reference_coefficient = 1.0
+
+    # 尝试从文件加载参考系数
+    config_file = os.path.join(basedir, 'config.json')
+    if os.path.exists(config_file):
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config_data = json.load(f)
+                reference_coefficient = config_data.get('reference_coefficient', 1.0)
+        except:
+            pass
+
     @app.context_processor
     def inject_globals():
         """注入全局变量到模板"""
         return {
             'app_name': '劳动用工管理系统',
-            'version': '2.0.0'
+            'version': '2.0.0',
+            'current_reference_coefficient': reference_coefficient
         }
+
+    # =====================================================
+    # 参考系数管理
+    # =====================================================
+
+    @app.route('/admin/update-reference-coefficient', methods=['POST'])
+    @login_required
+    def update_reference_coefficient():
+        """更新参考系数（仅管理员）"""
+        from flask import request as req
+        if not current_user.is_admin:
+            return error_response('需要管理员权限', 403)
+
+        data = req.get_json()
+        coefficient = data.get('coefficient')
+
+        if coefficient is None:
+            return error_response('缺少系数参数', 400)
+
+        try:
+            coefficient = float(coefficient)
+            if coefficient < 0.7 or coefficient > 1.0:
+                return error_response('参考系数必须在 0.7-1.0 之间', 400)
+
+            nonlocal reference_coefficient
+            reference_coefficient = coefficient
+
+            # 保存到文件
+            config_file = os.path.join(basedir, 'config.json')
+            config_data = {'reference_coefficient': coefficient}
+            with open(config_file, 'w', encoding='utf-8') as f:
+                json.dump(config_data, f, indent=4)
+
+            return success_response({'coefficient': coefficient}, message='参考系数已更新')
+        except ValueError:
+            return error_response('系数必须是数字', 400)
 
     app.logger.info(f"应用初始化完成 - 环境：{config_name}")
     return app
