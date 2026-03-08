@@ -82,14 +82,24 @@ def create_app(config_name=None):
     # 初始化数据库
     db.init_app(app)
 
-    # 初始化 Flask-Login
+    # 初始化 Flask-Login（仅用于会话管理）
     login_manager = LoginManager()
     login_manager.init_app(app)
-    login_manager.login_view = 'login'
 
     @login_manager.user_loader
     def load_user(user_id):
         return db.session.get(User, int(user_id))
+
+    # 配置登录视图（可选，仅传统模式使用）
+    login_manager.login_view = 'login_page'
+    login_manager.login_message_category = 'info'
+
+    # 自定义未授权响应（API 模式）
+    @login_manager.unauthorized_handler
+    def unauthorized():
+        if request.path.startswith('/api/'):
+            return error_response('请先登录', 401)
+        return redirect(url_for('login_page'))
 
     # 初始化日志
     setup_logging(app)
@@ -114,37 +124,15 @@ def create_app(config_name=None):
             filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
     # =====================================================
-    # 传统服务端渲染路由（向后兼容，可删除）
+    # 传统服务端渲染路由（向后兼容，已禁用）
     # =====================================================
+    # 注：前后端分离架构下，前端由 React 负责
+    # 以下路由仅作为 API 示例保留
 
-    @app.route('/')
-    @login_required
-    def index():
-        """首页（传统模式）"""
-        return redirect(url_for('index'))
-
-    @app.route('/login', methods=['GET', 'POST'])
-    def login():
-        """登录页面（传统模式）"""
-        if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-
-            user = User.query.filter_by(username=username).first()
-            if user and user.check_password(password) and user.is_active:
-                login_user(user)
-                next_page = request.args.get('next')
-                return redirect(next_page) if next_page else redirect(url_for('index'))
-            flash('用户名或密码错误', 'danger')
-
+    @app.route('/login')
+    def login_page():
+        """登录页面（传统模式，可选）"""
         return render_template('login.html')
-
-    @app.route('/logout')
-    @login_required
-    def logout():
-        """登出（传统模式）"""
-        logout_user()
-        return redirect(url_for('login'))
 
     # =====================================================
     # 静态文件服务（开发模式）
