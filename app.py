@@ -206,7 +206,7 @@ def create_app(config_name=None):
                 flash('密码修改成功', 'success')
                 return redirect(url_for('user_index'))
 
-        return render_template('user/change_password.html')
+        return render_template('change_password.html')
 
     # =====================================================
     # 管理端路由（服务端渲染）
