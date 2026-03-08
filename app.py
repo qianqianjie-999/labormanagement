@@ -164,6 +164,82 @@ def create_app(config_name=None):
         return redirect(url_for('login'))
 
     # =====================================================
+    # 用户端路由（服务端渲染）
+    # =====================================================
+
+    @app.route('/user')
+    @login_required
+    def user_index():
+        """用户主页"""
+        return render_template('user/index.html')
+
+    @app.route('/user/apply', methods=['GET', 'POST'])
+    @login_required
+    def user_apply():
+        """用工申请页面"""
+        return render_template('user/apply.html')
+
+    @app.route('/user/history')
+    @login_required
+    def user_apply_history():
+        """申请历史页面"""
+        return render_template('user/history.html')
+
+    @app.route('/change-password', methods=['GET', 'POST'])
+    @login_required
+    def change_password():
+        """修改密码页面"""
+        if request.method == 'POST':
+            old_password = request.form.get('old_password')
+            new_password = request.form.get('new_password')
+            confirm_password = request.form.get('confirm_password')
+
+            if not current_user.check_password(old_password):
+                flash('原密码错误', 'danger')
+            elif new_password != confirm_password:
+                flash('两次输入的新密码不一致', 'danger')
+            elif len(new_password) < 6:
+                flash('新密码长度不能少于 6 位', 'danger')
+            else:
+                current_user.set_password(new_password)
+                db.session.commit()
+                flash('密码修改成功', 'success')
+                return redirect(url_for('user_index'))
+
+        return render_template('user/change_password.html')
+
+    # =====================================================
+    # 管理端路由（服务端渲染）
+    # =====================================================
+
+    @app.route('/admin/dashboard')
+    @login_required
+    def admin_dashboard():
+        """管理员工作台"""
+        if not current_user.is_admin:
+            flash('需要管理员权限', 'danger')
+            return redirect(url_for('user_index'))
+        return render_template('admin/dashboard.html')
+
+    @app.route('/admin/items')
+    @login_required
+    def admin_items():
+        """分部分项管理页面"""
+        if not current_user.is_admin:
+            flash('需要管理员权限', 'danger')
+            return redirect(url_for('user_index'))
+        return render_template('admin/items.html')
+
+    @app.route('/admin/import')
+    @login_required
+    def admin_import():
+        """Excel 导入页面"""
+        if not current_user.is_admin:
+            flash('需要管理员权限', 'danger')
+            return redirect(url_for('user_index'))
+        return render_template('admin/import.html')
+
+    # =====================================================
     # 静态文件服务（开发模式）
     # =====================================================
 
