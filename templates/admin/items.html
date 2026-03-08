@@ -288,7 +288,7 @@ $(document).ready(function() {
             contentType: 'application/json',
             data: JSON.stringify({ coefficient: coefficient }),
             success: function(response) {
-                if (response.success) {
+                if (response.code === 200) {
                     alert('参考系数已更新为 ' + coefficient);
                     $('#currentCoefficient').text(coefficient);
                 } else {
