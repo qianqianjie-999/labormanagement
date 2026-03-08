@@ -1,65 +1,88 @@
-# 劳动用工管理系统 (Labor Management System)
+# 劳动用工管理系统 (Labor Management System) v2.0
 
-一个基于 Flask 的劳动用工申请与审批管理系统，支持用工申请、审批、导出等功能。
+一个基于 **Flask + React** 的劳动用工申请与审批管理系统，采用前后端分离架构，支持用工申请、审批、导出等功能。
 
-## 功能特性
+![License](https://img.shields.io/github/license/yourusername/labormanagement)
+![Python](https://img.shields.io/badge/python-3.9-blue)
+![Flask](https://img.shields.io/badge/Flask-2.3.3-green)
+![React](https://img.shields.io/badge/React-18-blue)
 
-- **用户管理**：支持多用户、角色权限（管理员/普通用户）
-- **用工申请**：在线填写用工申请单，支持 Excel 导入
-- **工作项管理**：预定义工作项及用工系数
-- **审批流程**：支持申请审批、审批意见填写
-- **数据导出**：支持 PDF 格式导出
-- **快照功能**：申请数据快照，防止基础数据变更影响历史记录
+## ✨ 特性
 
-## 技术栈
+- **前后端分离**: RESTful API + React 前端
+- **权限管理**: 基于角色的访问控制（管理员/普通用户）
+- **数据安全**: 密码加密、SQL 注入防护、CORS 配置
+- **数据快照**: 申请数据快照功能，防止基础数据变更影响历史记录
+- **Excel 导入**: 支持批量导入工作项和申请数据
+- **PDF 导出**: 支持申请单 PDF 格式导出
+- **响应式设计**: 适配桌面和移动端
 
+## 🏗️ 技术架构
+
+### 后端
 | 组件 | 版本/技术 |
 |------|----------|
-| Python | 3.9.12 |
-| Flask | 2.3.3 |
-| SQLAlchemy | 2.0.23 |
-| MySQL/MariaDB | - |
-| 前端 | HTML5, CSS3, JavaScript |
-| 部署 | Apache + mod_wsgi |
+| 框架 | Flask 2.3.3 |
+| ORM | SQLAlchemy 2.0.23 |
+| 数据库 | MySQL 5.7+ / MariaDB 10.3+ |
+| 认证 | Flask-Login |
+| 部署 | Apache + mod_wsgi / Gunicorn |
 
-## 项目结构
+### 前端
+| 组件 | 版本/技术 |
+|------|----------|
+| 框架 | React 18 |
+| 构建工具 | Vite 5 |
+| UI 组件库 | Ant Design 5 |
+| 状态管理 | Zustand |
+| 路由 | React Router 6 |
+| HTTP 客户端 | Axios |
+
+## 📁 项目结构
 
 ```
 labormanagement/
-├── app.py                      # 主应用程序
-├── config.py                   # 配置文件
-├── models.py                   # 数据模型
-├── init_tables.py              # 数据库初始化脚本
-├── cache_config.py             # 缓存配置
-├── rebulid.py                  # 重建脚本
-├── download_static_resources.py # 静态资源下载
-├── requirements.txt            # Python 依赖
-├── labormanagement.wsgi        # WSGI 入口文件
-├── templates/                  # HTML 模板
-│   ├── base.html
-│   ├── login.html
-│   ├── change_password.html
-│   ├── admin/
-│   └── user/
+├── api/                        # 后端 API 模块
+│   ├── __init__.py
+│   ├── auth.py                # 认证 API
+│   ├── users.py               # 用户管理 API
+│   ├── work_items.py          # 工作项 API
+│   ├── applications.py        # 申请 API
+│   └── utils.py               # API 工具函数
+├── frontend/                   # 前端 React 应用
+│   ├── src/
+│   ├── package.json
+│   └── vite.config.js
+├── database/                   # 数据库脚本
+│   ├── init.sql               # 初始化 SQL
+│   └── README.md
+├── scripts/                    # 辅助脚本
+│   ├── init_db.sh             # 数据库初始化
+│   └── README.md
+├── templates/                  # HTML 模板（传统模式）
 ├── static/                     # 静态资源
-│   ├── css/
-│   ├── js/
-│   ├── fonts/
-│   └── vendor/
 ├── uploads/                    # 上传文件目录
 ├── exports/                    # 导出文件目录
-└── logs/                       # 日志目录
+├── logs/                       # 日志目录
+├── app.py                      # Flask 应用主程序
+├── config.py                   # 配置管理
+├── models.py                   # 数据模型
+├── manage.py                   # 管理命令
+├── requirements.txt            # Python 依赖
+├── .env.example                # 环境变量示例
+└── README.md                   # 本文档
 ```
 
-## 快速开始
+## 🚀 快速开始
 
-### 1. 环境要求
+### 后端服务
+
+#### 1. 环境要求
 
 - Python 3.9+
 - MySQL 5.7+ 或 MariaDB 10.3+
-- Apache 2.4+ (生产环境)
 
-### 2. 安装依赖
+#### 2. 安装依赖
 
 ```bash
 python3 -m venv venv
@@ -67,34 +90,142 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
-### 3. 配置
-
-编辑 `config.py` 文件，修改数据库连接信息：
-
-```python
-SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://用户名：密码@localhost:3306/数据库名'
-SECRET_KEY = 'your-secret-key-here'
-```
-
-### 4. 初始化数据库
+#### 3. 配置环境变量
 
 ```bash
-source venv/bin/activate
-python init_tables.py
+cp .env.example .env
+# 编辑 .env 文件，配置数据库连接等
 ```
 
-### 5. 开发环境运行
+#### 4. 初始化数据库
 
 ```bash
+# 方式 1: 使用 SQL 脚本
+mysql -u root -p < database/init.sql
+
+# 方式 2: 使用管理命令
+python manage.py init-db
+```
+
+#### 5. 启动服务
+
+```bash
+# 方式 1: 直接运行
 python app.py
-# 访问 http://localhost:5000
+
+# 方式 2: 使用管理脚本
+python manage.py runserver --debug
+
+# 方式 3: 使用启动脚本
+./run.sh  # Linux/Mac
+run.bat   # Windows
 ```
 
-### 6. 生产环境部署
+访问 `http://localhost:5000`
 
-参见 [生产环境部署手册](DEPLOYMENT.md)
+### 前端服务
 
-## 默认账户
+#### 1. 环境要求
+
+- Node.js 18+
+- npm 或 pnpm
+
+#### 2. 安装依赖
+
+```bash
+cd frontend
+npm install
+```
+
+#### 3. 配置环境
+
+```bash
+cp .env.example .env
+# 编辑 .env 文件配置 API 地址
+```
+
+#### 4. 启动开发服务器
+
+```bash
+npm run dev
+```
+
+访问 `http://localhost:3000`
+
+#### 5. 构建生产版本
+
+```bash
+npm run build
+```
+
+## 📋 API 接口
+
+### 认证
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| POST | /api/auth/login | 用户登录 |
+| POST | /api/auth/logout | 用户登出 |
+| GET | /api/auth/me | 获取当前用户 |
+| POST | /api/auth/change-password | 修改密码 |
+
+### 用户管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/users | 用户列表 |
+| GET | /api/users/:id | 用户详情 |
+| POST | /api/users | 创建用户 |
+| PUT | /api/users/:id | 更新用户 |
+| DELETE | /api/users/:id | 删除用户 |
+| GET | /api/users/departments | 部门列表 |
+
+### 工作项管理
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/work-items | 工作项列表 |
+| GET | /api/work-items/:id | 工作项详情 |
+| POST | /api/work-items | 创建工作项 |
+| PUT | /api/work-items/:id | 更新工作项 |
+| DELETE | /api/work-items/:id | 删除工作项 |
+| GET | /api/work-items/categories | 分类列表 |
+| POST | /api/work-items/import | 批量导入 |
+
+### 用工申请
+| 方法 | 路径 | 说明 |
+|------|------|------|
+| GET | /api/applications | 申请列表 |
+| GET | /api/applications/:id | 申请详情 |
+| POST | /api/applications | 创建申请 |
+| PUT | /api/applications/:id | 更新申请 |
+| DELETE | /api/applications/:id | 删除申请 |
+| POST | /api/applications/:id/approve | 审批申请 |
+| GET | /api/applications/stats | 统计数据 |
+
+## 🔧 管理命令
+
+```bash
+# 查看可用命令
+python manage.py --help
+
+# 启动开发服务器
+python manage.py runserver --debug
+
+# 初始化数据库
+python manage.py init-db
+
+# 创建用户
+python manage.py create-user
+
+# 列出所有用户
+python manage.py list-users
+
+# 删除用户
+python manage.py delete-user <用户名>
+
+# 更新工作项系数
+python manage.py update-coefficient <工作项代码>
+```
+
+## 🔐 默认账户
 
 初始化后，系统会创建以下默认账户：
 
@@ -103,110 +234,67 @@ python app.py
 | admin | admin123 | 管理员 |
 | user1 | user123 | 普通用户 |
 
-**首次登录后请及时修改密码！**
+**⚠️ 首次登录后请立即修改默认密码！**
 
-## 主要功能模块
+## 📖 配置说明
 
-### 用户管理
-- 用户列表、新增、编辑、删除
-- 角色分配（管理员/普通用户）
-- 密码修改
+### 环境变量
 
-### 用工申请
-- 创建新的用工申请
-- Excel 批量导入申请数据
-- 查看申请详情
-- 申请状态跟踪
-
-### 工作项管理
-- 工作项代码维护
-- 用工系数配置
-- 分类管理
-
-### 审批管理
-- 待审批列表
-- 审批通过/驳回
-- 审批意见填写
-- 审批记录查询
-
-## 配置说明
-
-### config.py 配置项
-
-| 配置项 | 说明 | 默认值 |
+| 变量名 | 说明 | 默认值 |
 |--------|------|--------|
+| FLASK_ENV | 运行环境 | development |
 | SECRET_KEY | 安全密钥 | - |
-| SQLALCHEMY_DATABASE_URI | 数据库连接 | - |
-| SQLALCHEMY_TRACK_MODIFICATIONS | 追踪对象修改 | False |
-| UPLOAD_FOLDER | 上传文件目录 | ./uploads |
-| ALLOWED_EXTENSIONS | 允许上传的扩展名 | xlsx, xls |
-| MAX_CONTENT_LENGTH | 最大上传大小 | 16MB |
-| PDF_EXPORT_FOLDER | PDF 导出目录 | ./exports |
+| DATABASE_URL | 数据库连接 | - |
+| LOG_LEVEL | 日志级别 | INFO |
+| CORS_ORIGINS | 跨域来源 | http://localhost:3000 |
 
-## 数据库表结构
+详见 `.env.example` 文件。
 
-| 表名 | 说明 |
-|------|------|
-| users | 用户表 |
-| work_items | 工作项表 |
-| labor_applications | 用工申请表 |
-| application_items | 申请明细表 |
+## 📦 生产环境部署
 
-## 开发说明
+详见 [DEPLOYMENT.md](DEPLOYMENT.md)
 
-### 添加新的工作项
-
-可以通过以下方式添加工作项：
-
-1. **后台管理界面**：登录后在管理界面添加
-2. **Excel 导入**：使用模板批量导入
-3. **数据库脚本**：直接执行 SQL 或 Python 脚本
-
-### 修改用工系数
-
-用工系数在工作项表中维护，修改后：
-- 新申请使用新系数
-- 历史申请使用快照数据（不受影响）
-
-## 常见问题
-
-### 数据库连接失败
-
-检查 `config.py` 中的数据库连接配置，确保：
-- 数据库服务已启动
-- 用户名密码正确
-- 用户有正确的访问权限
-
-### 静态文件 404
-
-检查 Apache 配置中的静态文件路径配置，确保 `Alias /static` 指向正确的目录。
-
-### 上传文件失败
-
-确保 `uploads` 目录存在且有写权限：
+### 后端部署
 
 ```bash
-chown -R apache:apache uploads/
-chmod 755 uploads/
+# 使用 Gunicorn
+gunicorn app:app -w 4 -b 0.0.0.0:5000
+
+# 或使用 Apache + mod_wsgi（参考 DEPLOYMENT.md）
 ```
 
-## 日志
+### 前端部署
 
-日志文件位于 `logs/` 目录：
+```bash
+# 构建
+npm run build
 
-- `app.log` - 应用程序日志
-- `config.json` - 运行时配置
+# 将 dist/ 目录部署到静态服务器或 CDN
+```
 
-## 版本历史
+## ❓ 常见问题
 
-| 版本 | 日期 | 说明 |
-|------|------|------|
-| 1.0.0 | 2024-01 | 初始版本 |
+### 数据库连接失败
+检查 `DATABASE_URL` 环境变量配置，确保数据库服务已启动且网络可达。
 
-## License
+### CORS 错误
+确保后端 `.env` 文件中 `CORS_ORIGINS` 配置包含前端地址。
 
-Copyright (c) 2024
+### 静态文件 404
+生产环境需配置静态文件服务，或使用前端构建工具打包后的资源。
 
-## 联系方式
+## 📝 更新日志
+
+详见 [CHANGELOG.md](CHANGELOG.md)
+
+## 📄 License
+
+MIT License - 详见 [LICENSE](LICENSE)
+
+## 🤝 贡献
+
+欢迎提交 Issue 和 Pull Request！
+
+## 📧 联系方式
 
 如有问题，请联系开发团队。
