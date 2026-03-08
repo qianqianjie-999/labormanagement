@@ -68,7 +68,7 @@ def get_work_item(item_id):
     return success_response({'item': item.to_dict(hide_coefficient)})
 
 
-@work_items_bp.route('', methods=['POST'])
+@work_items_bp.route('', methods=['POST'], endpoint='api_add_item')
 @admin_required_api
 @validate_json('code', 'name', 'labor_coefficient', 'unit', 'category')
 def create_work_item():
@@ -93,7 +93,11 @@ def create_work_item():
     return success_response({'item': item.to_dict()}, message='工作项创建成功', code=201)
 
 
-@work_items_bp.route('/<int:item_id>', methods=['PUT'])
+# 为模板 url_for 添加别名endpoint
+work_items_bp.add_url_rule('/create', 'api_add_item', create_work_item, methods=['POST'])
+
+
+@work_items_bp.route('/<int:item_id>', methods=['PUT'], endpoint='api_update_item')
 @admin_required_api
 @validate_json('name', 'labor_coefficient', 'unit', 'category')
 def update_work_item(item_id):
@@ -111,7 +115,7 @@ def update_work_item(item_id):
     return success_response({'item': item.to_dict()}, message='工作项更新成功')
 
 
-@work_items_bp.route('/<int:item_id>', methods=['DELETE'])
+@work_items_bp.route('/<int:item_id>', methods=['DELETE'], endpoint='api_delete_item')
 @admin_required_api
 def delete_work_item(item_id):
     """删除工作项（仅管理员）"""
