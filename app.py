@@ -258,6 +258,131 @@ def create_app(config_name=None):
         return render_template('admin/users.html')
 
     # =====================================================
+    # 用户申请相关路由
+    # =====================================================
+
+    @app.route('/user/apply/submit', methods=['POST'])
+    @login_required
+    def user_apply_submit():
+        """提交用工申请"""
+        from models import ApplicationItem
+        try:
+            # 获取表单数据
+            work_items = request.form.getlist('workItems')
+            apply_date = request.form.get('apply_date')
+            apply_reason = request.form.get('apply_reason', '')
+
+            if not work_items:
+                flash('请至少选择一个工作项', 'danger')
+                return redirect(url_for('user_apply'))
+
+            # 创建申请
+            application = LaborApplication(
+                user_id=current_user.id,
+                apply_date=datetime.strptime(apply_date, '%Y-%m-%d').date() if apply_date else datetime.now().date(),
+                reason=apply_reason,
+                status='pending'
+            )
+            db.session.add(application)
+            db.session.flush()  # 获取 application id
+
+            # 添加申请项目
+            for item_data in work_items:
+                if item_data:
+                    import json
+                    item = json.loads(item_data)
+                    app_item = ApplicationItem(
+                        application_id=application.id,
+                        work_item_id=item.get('work_item_id'),
+                        quantity=float(item.get('quantity', 0)),
+                        work_content=item.get('work_content', '')
+                    )
+                    db.session.add(app_item)
+
+            db.session.commit()
+            flash('申请提交成功', 'success')
+            return redirect(url_for('user_apply_history'))
+
+        except Exception as e:
+            db.session.rollback()
+            app.logger.error(f'提交申请失败：{e}')
+            flash('提交申请失败：' + str(e), 'danger')
+            return redirect(url_for('user_apply'))
+
+    @app.route('/export/pdf/<int:application_id>')
+    @login_required
+    def export_pdf(application_id):
+        """导出申请单为 PDF"""
+        from reportlab.pdfgen import canvas
+        from reportlab.lib.pagesizes import A4
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
+        from io import BytesIO
+        import os
+
+        # 获取申请详情
+        application = LaborApplication.query.get_or_404(application_id)
+
+        # 权限检查：只能导出自己的申请，管理员可以导出所有
+        if not current_user.is_admin and application.user_id != current_user.id:
+            flash('无权访问', 'danger')
+            return redirect(url_for('user_apply_history'))
+
+        try:
+            # 创建 PDF
+            buffer = BytesIO()
+            p = canvas.Canvas(buffer, pagesize=A4)
+            width, height = A4
+
+            # 注册中文字体（如果存在）
+            font_path = os.path.join(os.path.dirname(__file__), 'static', 'fonts', 'SimHei.ttf')
+            if os.path.exists(font_path):
+                pdfmetrics.RegisterFont(TTFont('SimHei', font_path))
+                font_name = 'SimHei'
+            else:
+                font_name = 'Helvetica'
+
+            # 标题
+            p.setFont(font_name, 18)
+            p.drawCentredString(width / 2, height - 50, '用工申请单')
+
+            # 申请信息
+            p.setFont(font_name, 12)
+            y = height - 100
+            p.drawString(50, y, f'申请编号：{application.id}')
+            y -= 25
+            p.drawString(50, y, f'申请人：{application.user.display_name if application.user else "Unknown"}')
+            y -= 25
+            p.drawString(50, y, f'申请日期：{application.apply_date}')
+            y -= 25
+            p.drawString(50, y, f'状态：{application.status}')
+            y -= 25
+            p.drawString(50, y, f'申请理由：{application.reason or "无"}')
+
+            # 工作项列表
+            y -= 40
+            p.drawString(50, y, '工作项明细：')
+            y -= 25
+            for i, item in enumerate(application.application_items):
+                p.drawString(50, y, f'{i+1}. {item.work_item.name if item.work_item else "Unknown"} - 数量：{item.quantity}')
+                y -= 20
+
+            p.save()
+
+            # 发送文件
+            buffer.seek(0)
+            return send_file(
+                buffer,
+                mimetype='application/pdf',
+                as_attachment=True,
+                download_name=f'application_{application.id}.pdf'
+            )
+        except Exception as e:
+            app.logger.error(f'导出 PDF 失败：{e}')
+            flash('导出 PDF 失败：' + str(e), 'danger')
+            return redirect(url_for('user_apply_history'))
+
+    # =====================================================
     # 静态文件服务（开发模式）
     # =====================================================
 
