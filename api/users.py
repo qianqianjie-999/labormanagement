@@ -75,7 +75,7 @@ def get_user(user_id):
     return success_response({'user': user.to_dict()})
 
 
-@users_bp.route('', methods=['POST'], endpoint='api_add_user')
+@users_bp.route('', methods=['POST'])
 @admin_required_api
 @validate_json('username', 'display_name', 'password')
 def create_user():
@@ -101,7 +101,7 @@ def create_user():
     return success_response({'user': user.to_dict()}, message='用户创建成功', code=201)
 
 
-@users_bp.route('/<int:user_id>', methods=['PUT'], endpoint='api_update_user')
+@users_bp.route('/<int:user_id>', methods=['PUT'])
 @admin_required_api
 @validate_json('display_name')
 def update_user(user_id):
@@ -125,7 +125,7 @@ def update_user(user_id):
     return success_response({'user': user.to_dict()}, message='用户更新成功')
 
 
-@users_bp.route('/<int:user_id>', methods=['DELETE'], endpoint='api_delete_user')
+@users_bp.route('/<int:user_id>', methods=['DELETE'])
 @admin_required_api
 def delete_user(user_id):
     """删除用户（仅管理员）"""
@@ -154,7 +154,7 @@ def get_departments():
     })
 
 
-@users_bp.route('/<int:user_id>/reset-password', methods=['POST'], endpoint='api_reset_user_password')
+@users_bp.route('/<int:user_id>/reset-password', methods=['POST'])
 @admin_required_api
 def reset_password(user_id):
     """重置用户密码（仅管理员）"""

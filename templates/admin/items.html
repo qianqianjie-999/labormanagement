@@ -184,7 +184,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         $.ajax({
-            url: '{{ url_for("api_add_item") }}',
+            url: '/api/work-items',
             type: 'POST',
             data: $(this).serialize(),
             success: function(response) {
@@ -230,7 +230,7 @@ $(document).ready(function() {
         };
 
         $.ajax({
-            url: '{{ url_for("api_update_item", item_id=0) }}'.replace('0', $('#edit_item_id').val()),
+            url: '/api/work-items/' + $('#edit_item_id').val(),
             type: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -257,7 +257,7 @@ $(document).ready(function() {
         var itemId = $(this).data('id');
 
         $.ajax({
-            url: '{{ url_for("api_delete_item", item_id=0) }}'.replace('0', itemId),
+            url: '/api/work-items/' + itemId,
             type: 'DELETE',
             success: function(response) {
                 if (response.success) {
