@@ -1,300 +1,149 @@
-# 劳动用工管理系统 (Labor Management System) v2.0
-
-一个基于 **Flask + React** 的劳动用工申请与审批管理系统，采用前后端分离架构，支持用工申请、审批、导出等功能。
-
-![License](https://img.shields.io/github/license/yourusername/labormanagement)
-![Python](https://img.shields.io/badge/python-3.9-blue)
-![Flask](https://img.shields.io/badge/Flask-2.3.3-green)
-![React](https://img.shields.io/badge/React-18-blue)
-
-## ✨ 特性
-
-- **前后端分离**: RESTful API + React 前端
-- **权限管理**: 基于角色的访问控制（管理员/普通用户）
-- **数据安全**: 密码加密、SQL 注入防护、CORS 配置
-- **数据快照**: 申请数据快照功能，防止基础数据变更影响历史记录
-- **Excel 导入**: 支持批量导入工作项和申请数据
-- **PDF 导出**: 支持申请单 PDF 格式导出
-- **响应式设计**: 适配桌面和移动端
-
-## 🏗️ 技术架构
-
-### 后端
-| 组件 | 版本/技术 |
-|------|----------|
-| 框架 | Flask 2.3.3 |
-| ORM | SQLAlchemy 2.0.23 |
-| 数据库 | MySQL 5.7+ / MariaDB 10.3+ |
-| 认证 | Flask-Login |
-| 部署 | Apache + mod_wsgi / Gunicorn |
-
-### 前端
-| 组件 | 版本/技术 |
-|------|----------|
-| 框架 | React 18 |
-| 构建工具 | Vite 5 |
-| UI 组件库 | Ant Design 5 |
-| 状态管理 | Zustand |
-| 路由 | React Router 6 |
-| HTTP 客户端 | Axios |
-
-## 📁 项目结构
-
-```
-labormanagement/
-├── api/                        # 后端 API 模块
-│   ├── __init__.py
-│   ├── auth.py                # 认证 API
-│   ├── users.py               # 用户管理 API
-│   ├── work_items.py          # 工作项 API
-│   ├── applications.py        # 申请 API
-│   └── utils.py               # API 工具函数
-├── frontend/                   # 前端 React 应用
-│   ├── src/
-│   ├── package.json
-│   └── vite.config.js
-├── database/                   # 数据库脚本
-│   ├── init.sql               # 初始化 SQL
-│   └── README.md
-├── scripts/                    # 辅助脚本
-│   ├── init_db.sh             # 数据库初始化
-│   └── README.md
-├── templates/                  # HTML 模板（传统模式）
-├── static/                     # 静态资源
-├── uploads/                    # 上传文件目录
-├── exports/                    # 导出文件目录
-├── logs/                       # 日志目录
-├── app.py                      # Flask 应用主程序
-├── config.py                   # 配置管理
-├── models.py                   # 数据模型
-├── manage.py                   # 管理命令
-├── requirements.txt            # Python 依赖
-├── .env.example                # 环境变量示例
-└── README.md                   # 本文档
-```
-
-## 🚀 快速开始
-
-### 后端服务
-
-#### 1. 环境要求
-
-- Python 3.9+
-- MySQL 5.7+ 或 MariaDB 10.3+
-
-#### 2. 安装依赖
-
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-```
-
-#### 3. 配置环境变量
-
-```bash
-cp .env.example .env
-# 编辑 .env 文件，配置数据库连接等
-```
-
-#### 4. 初始化数据库
-
-```bash
-# 方式 1: 使用 SQL 脚本
-mysql -u root -p < database/init.sql
-
-# 方式 2: 使用管理命令
-python manage.py init-db
-```
-
-#### 5. 启动服务
-
-```bash
-# 方式 1: 直接运行
-python app.py
-
-# 方式 2: 使用管理脚本
-python manage.py runserver --debug
-
-# 方式 3: 使用启动脚本
-./run.sh  # Linux/Mac
-run.bat   # Windows
-```
-
-访问 `http://localhost:5000`
-
-### 前端服务
-
-#### 1. 环境要求
-
-- Node.js 18+
-- npm 或 pnpm
-
-#### 2. 安装依赖
-
-```bash
-cd frontend
-npm install
-```
-
-#### 3. 配置环境
-
-```bash
-cp .env.example .env
-# 编辑 .env 文件配置 API 地址
-```
-
-#### 4. 启动开发服务器
-
-```bash
-npm run dev
-```
-
-访问 `http://localhost:3000`
-
-#### 5. 构建生产版本
-
-```bash
-npm run build
-```
-
-## 📋 API 接口
-
-### 认证
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| POST | /api/auth/login | 用户登录 |
-| POST | /api/auth/logout | 用户登出 |
-| GET | /api/auth/me | 获取当前用户 |
-| POST | /api/auth/change-password | 修改密码 |
-
-### 用户管理
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/users | 用户列表 |
-| GET | /api/users/:id | 用户详情 |
-| POST | /api/users | 创建用户 |
-| PUT | /api/users/:id | 更新用户 |
-| DELETE | /api/users/:id | 删除用户 |
-| GET | /api/users/departments | 部门列表 |
-
-### 工作项管理
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/work-items | 工作项列表 |
-| GET | /api/work-items/:id | 工作项详情 |
-| POST | /api/work-items | 创建工作项 |
-| PUT | /api/work-items/:id | 更新工作项 |
-| DELETE | /api/work-items/:id | 删除工作项 |
-| GET | /api/work-items/categories | 分类列表 |
-| POST | /api/work-items/import | 批量导入 |
-
-### 用工申请
-| 方法 | 路径 | 说明 |
-|------|------|------|
-| GET | /api/applications | 申请列表 |
-| GET | /api/applications/:id | 申请详情 |
-| POST | /api/applications | 创建申请 |
-| PUT | /api/applications/:id | 更新申请 |
-| DELETE | /api/applications/:id | 删除申请 |
-| POST | /api/applications/:id/approve | 审批申请 |
-| GET | /api/applications/stats | 统计数据 |
-
-## 🔧 管理命令
-
-```bash
-# 查看可用命令
-python manage.py --help
-
-# 启动开发服务器
-python manage.py runserver --debug
-
-# 初始化数据库
-python manage.py init-db
-
-# 创建用户
-python manage.py create-user
-
-# 列出所有用户
-python manage.py list-users
-
-# 删除用户
-python manage.py delete-user <用户名>
-
-# 更新工作项系数
-python manage.py update-coefficient <工作项代码>
-```
-
-## 🔐 默认账户
-
-初始化后，系统会创建以下默认账户：
-
-| 用户名 | 密码 | 角色 |
-|--------|------|------|
-| admin | admin123 | 管理员 |
-| user1 | user123 | 普通用户 |
-
-**⚠️ 首次登录后请立即修改默认密码！**
-
-## 📖 配置说明
-
-### 环境变量
-
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| FLASK_ENV | 运行环境 | development |
-| SECRET_KEY | 安全密钥 | - |
-| DATABASE_URL | 数据库连接 | - |
-| LOG_LEVEL | 日志级别 | INFO |
-| CORS_ORIGINS | 跨域来源 | http://localhost:3000 |
-
-详见 `.env.example` 文件。
-
-## 📦 生产环境部署
-
-详见 [DEPLOYMENT.md](DEPLOYMENT.md)
-
-### 后端部署
-
-```bash
-# 使用 Gunicorn
-gunicorn app:app -w 4 -b 0.0.0.0:5000
-
-# 或使用 Apache + mod_wsgi（参考 DEPLOYMENT.md）
-```
-
-### 前端部署
-
-```bash
-# 构建
-npm run build
-
-# 将 dist/ 目录部署到静态服务器或 CDN
-```
-
-## ❓ 常见问题
-
-### 数据库连接失败
-检查 `DATABASE_URL` 环境变量配置，确保数据库服务已启动且网络可达。
-
-### CORS 错误
-确保后端 `.env` 文件中 `CORS_ORIGINS` 配置包含前端地址。
-
-### 静态文件 404
-生产环境需配置静态文件服务，或使用前端构建工具打包后的资源。
-
-## 📝 更新日志
-
-详见 [CHANGELOG.md](CHANGELOG.md)
-
-## 📄 License
-
-MIT License - 详见 [LICENSE](LICENSE)
-
-## 🤝 贡献
-
-欢迎提交 Issue 和 Pull Request！
-
-## 📧 联系方式
-
-如有问题，请联系开发团队。
+根据您提供的六个对话记录，我已将其整理为一份完整的《劳动用工管理系统生产环境部署手册》。这份文档系统地总结了整个部署流程、关键决策、故障排查点以及最终的成功配置。
+
+---
+
+## 📖 劳动用工管理系统生产环境部署手册
+
+本手册记录了“劳动用工管理系统”在 CentOS Stream 服务器上，通过 **Apache + mod_wsgi** 架构成功部署至生产环境的完整流程、关键问题与解决方案。
+
+### 一、 部署概述与架构决策
+
+*   **最终架构**：Apache (httpd) + mod_wsgi
+*   **放弃的架构**：Nginx + uWSGI + Unix Socket
+*   **决策原因**：原方案在配置 `mod_proxy_uwsgi` 时遇到语法兼容性问题。切换为与服务器上已稳定运行的其他项目（`signal_fault`）一致的 `mod_wsgi` 架构，路径更直接，避开了代理配置的复杂性。
+*   **核心原则**：确保生产环境（Apache 进程）的操作（如创建数据库表）必须与开发环境（直接运行 `app.py`）隔离，使用完全相同的用户、Python环境和应用配置上下文执行。
+
+### 二、 部署前准备
+
+1.  **项目放置与权限**：
+    *   项目主目录：`/var/www/html/labormanagement`
+    *   权限设置：确保 Apache 用户有权访问。
+        ```bash
+        sudo chown -R apache:apache /var/www/html/labormanagement
+        ```
+2.  **Python 虚拟环境**：
+    *   在项目目录内创建并激活虚拟环境。
+        ```bash
+        python3 -m venv venv
+        source venv/bin/activate
+        ```
+
+### 三、 详细部署步骤
+
+#### 步骤 1：解决依赖冲突
+部署初期遇到核心依赖 `numpy` 与 `pandas` 的二进制不兼容问题。
+*   **解决方案**：降级到稳定的版本组合。
+    ```bash
+    pip install numpy==1.24.3 pandas==1.5.3
+    ```
+*   **后续操作**：安装其他项目依赖 (`Flask`, `Flask-SQLAlchemy`, `pymysql` 等)。
+
+#### 步骤 2：配置 Apache 与 mod_wsgi
+这是确保应用能被 Apache 加载的关键。
+1.  **创建正确的 WSGI 入口文件** (`labormanagement.wsgi`)。
+    *   **核心要点**：文件必须语法正确，无多余缩进或注释掉的代码行。
+    *   **正确内容**：
+        ```python
+        #!/usr/bin/python3.9
+        import sys
+        import logging
+        logging.basicConfig(stream=sys.stderr)
+        sys.path.insert(0, '/var/www/html/labormanagement')
+        from app import create_app
+        application = create_app()
+        ```
+2.  **配置 Apache 虚拟主机**。
+    *   在 `/etc/httpd/conf.d/` 下创建配置文件（如 `labormanagement.conf`）。
+    *   **关键配置项**：
+        *   `Listen 9000`：指定应用监听端口。
+        *   `WSGIDaemonProcess` 和 `WSGIProcessGroup`：正确指向项目路径和虚拟环境。
+        *   `WSGIScriptAlias`：指向上面创建的 `.wsgi` 文件。
+        *   正确配置 `Directory` 区块的权限。
+
+#### 步骤 3：配置系统策略与防火墙
+*   **SELinux**：允许 Apache 进行网络连接。
+    ```bash
+    sudo setsebool -P httpd_can_network_connect 1
+    ```
+*   **防火墙**：开放 9000 端口。
+    ```bash
+    sudo firewall-cmd --permanent --add-port=9000/tcp
+    sudo firewall-cmd --reload
+    ```
+
+### 四、 数据库配置与初始化
+
+这是部署过程中问题最集中的环节。
+
+#### 阶段 1：解决连接权限问题
+应用启动后，出现 `Access denied for user ‘labor_app_user‘@‘::1‘` 错误。
+*   **问题根源**：MySQL/MariaDB 将 `localhost` (通常指 IPv4 回环地址 `127.0.0.1` 或 Unix Socket) 与 IPv6 地址 `::1` 视为不同的主机。
+*   **解决方案**：为数据库用户添加从 IPv6 地址 (`::1`) 连接的权限。
+    ```sql
+    -- 在 MariaDB 中执行
+    CREATE USER 'labor_app_user'@'::1' IDENTIFIED BY '你的密码';
+    GRANT ALL PRIVILEGES ON labor_application_db.* TO 'labor_app_user'@'::1';
+    FLUSH PRIVILEGES;
+    ```
+*   **更优实践**：在应用配置文件 `config.py` 中，将数据库连接 URI 明确指定为 IPv4 地址，一劳永逸地避免此问题。
+    ```python
+    SQLALCHEMY_DATABASE_URI = 'mysql+pymysql://labor_app_user:密码@127.0.0.1/labor_application_db'
+    ```
+
+#### 阶段 2：初始化生产数据库表
+解决连接问题后，出现 `Table ‘labor_application_db.users‘ doesn‘t exist` 错误。
+*   **问题根源**：Flask-SQLAlchemy 的 `db.create_all()` 在开发环境中运行，不会自动在生产环境的数据库中创建表。
+*   **核心解决方案**：创建一个 Python 初始化脚本，并在与 **Apache 运行时完全相同的上下文** 中执行它。
+    ```bash
+    # 1. 编写初始化脚本 init_tables.py (内容见下方)
+    # 2. 以 apache 用户身份，使用生产环境虚拟环境执行
+    sudo -u apache /var/www/html/labormanagement/venv/bin/python /var/www/html/labormanagement/init_tables.py
+    ```
+*   **初始化脚本关键点 (`init_tables.py`)**：
+    *   必须导入 `create_app` 以加载生产配置。
+    *   必须在 `app.app_context()` 内调用 `db.create_all()`。
+    *   可以包含创建默认用户（如 `admin` / `admin123`）和示例工作项数据的逻辑。
+
+### 五、 上线验证与维护
+
+#### 验证部署成功
+1.  **检查服务状态**：
+    ```bash
+    sudo ss -tlnp | grep :9000  # 确认端口监听
+    sudo systemctl status httpd # 确认Apache状态
+    ```
+2.  **测试应用响应**：
+    ```bash
+    curl -I http://192.168.31.75:9000/login
+    ```
+    *   **返回 `200 OK`**：部署成功。
+    *   **返回 `302 Found` 并重定向至 `/login`**：同样是成功标志，表明应用中间件（如登录验证）工作正常。
+3.  **最终测试**：在浏览器中访问 `http://<服务器IP>:9000` 并尝试登录。
+
+#### 日常维护命令
+| 用途 | 命令 |
+| :--- | :--- |
+| 重启应用 | `sudo systemctl restart httpd` |
+| 查看实时错误日志 | `sudo tail -f /var/log/httpd/labormanagement_error.log` |
+| 查看访问日志 | `sudo tail -f /var/log/httpd/labormanagement_access.log` |
+
+### 六、 常见问题排查 (FAQ)
+
+| 现象 | 可能原因 | 解决思路 |
+| :--- | :--- | :--- |
+| **`IndentationError` in WSGI file** | `.wsgi` 文件存在缩进或语法错误。 | 使用 `cat -A` 检查隐藏字符，或用提供的模板彻底重写该文件。 |
+| **`ModuleNotFoundError`** | 虚拟环境中缺少依赖包，或 Apache 未使用虚拟环境路径。 | 确认 `pip` 包已安装，并在 Apache 配置中通过 `python-home` 正确指向虚拟环境目录。 |
+| **数据库连接被拒绝** | 1. 用户密码错误。<br>2. 用户主机权限不足（如缺少 `@‘::1‘`）。<br>3. MariaDB 服务未启动。 | 1. 检查密码。<br>2. 在 MariaDB 中检查并修正用户权限。<br>3. 执行 `sudo systemctl status mariadb`。 |
+| **`Table ... doesn‘t exist`** | 生产环境的数据库表未初始化。 | **严格按照手册第四部分，使用 `sudo -u apache ...` 执行初始化脚本**。 |
+| **静态文件 404** | Apache 未正确配置静态文件别名或权限。 | 检查 Apache 配置中 `Alias /static` 指令及对应的 `Directory` 权限。 |
+
+### 七、 总结
+本次部署成功的关键在于：
+1.  **架构选型**：采用了与现有环境兼容的、更简单的 `mod_wsgi`。
+2.  **环境隔离**：深刻理解并严格区分了开发与生产环境，确保数据库初始化等操作在生产上下文执行。
+3.  **权限管理**：妥善处理了系统层（SELinux、防火墙）、服务层（Apache用户）、数据层（MariaDB用户主机权限）的各级权限。
+4.  **日志排查**：始终通过查看 Apache 错误日志 (`/var/log/httpd/labormanagement_error.log`) 来定位问题的精确根源。
+
+---
+
+这份手册整合了您部署过程中遇到的所有核心挑战与解决方案，可以作为未来维护或部署类似项目的重要参考。

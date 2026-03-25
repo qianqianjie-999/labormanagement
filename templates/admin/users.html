@@ -378,7 +378,7 @@ $(document).ready(function() {
         e.preventDefault();
 
         $.ajax({
-            url: '/api/users',
+            url: '{{ url_for("api_add_user") }}',
             type: 'POST',
             data: $(this).serialize(),
             success: function(response) {
@@ -459,7 +459,7 @@ $(document).ready(function() {
         }
 
         $.ajax({
-            url: '/api/users/' + userId,
+            url: '{{ url_for("api_update_user", user_id=0) }}'.replace('0', userId),
             type: 'PUT',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -512,7 +512,7 @@ $(document).ready(function() {
         var data = { new_password: newPassword };
 
         $.ajax({
-            url: '/api/users/' + userId + '/reset-password',
+            url: '{{ url_for("api_reset_user_password", user_id=0) }}'.replace('0', userId),
             type: 'POST',
             contentType: 'application/json',
             data: JSON.stringify(data),
@@ -540,7 +540,7 @@ $(document).ready(function() {
 
         if (confirm(`确定要删除用户 "${username}" 吗？\n\n此操作不可撤销，请谨慎操作！`)) {
             $.ajax({
-                url: '/api/users/' + userId,
+                url: '{{ url_for("api_delete_user", user_id=0) }}'.replace('0', userId),
                 type: 'DELETE',
                 success: function(response) {
                     if (response.success) {
