@@ -1946,6 +1946,113 @@ def create_app():
             mimetype='application/pdf'
         )
 
+    # PDF 签字扫描件上传路由
+    @app.route('/api/application/<int:application_id>/upload-pdf', methods=['POST'])
+    @login_required
+    def upload_pdf(application_id):
+        application = LaborApplication.query.get_or_404(application_id)
+
+        # 检查权限：只有申请人、部门同事或管理员可以上传
+        if not current_user.is_admin and application.applicant != current_user.display_name:
+            return jsonify({'success': False, 'message': '权限不足'}), 403
+
+        # 检查是否已上传 PDF
+        if application.signed_pdf_filename:
+            return jsonify({'success': False, 'message': '已上传过 PDF，如需更换请先删除'}), 400
+
+        if 'file' not in request.files:
+            return jsonify({'success': False, 'message': '没有选择文件'}), 400
+
+        file = request.files['file']
+
+        if file.filename == '':
+            return jsonify({'success': False, 'message': '没有选择文件'}), 400
+
+        # 验证文件类型
+        def allowed_pdf(filename):
+            return '.' in filename and \
+                   filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_PDF_EXTENSIONS']
+
+        if not (file and allowed_pdf(file.filename)):
+            return jsonify({'success': False, 'message': '只支持 PDF 文件'}), 400
+
+        try:
+            # 确保上传目录存在
+            upload_folder = app.config['PDF_UPLOAD_FOLDER']
+            os.makedirs(upload_folder, exist_ok=True)
+
+            # 生成唯一的文件名，包含申请 ID 避免重复
+            original_filename = secure_filename(file.filename)
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            filename = f"pdf_app{application_id}_{timestamp}_{original_filename}"
+            filepath = os.path.join(upload_folder, filename)
+
+            file.save(filepath)
+
+            # 更新数据库记录
+            application.signed_pdf_filename = filename
+            application.pdf_uploaded_at = datetime.now()
+            application.pdf_uploaded_by = current_user.display_name
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'message': 'PDF 上传成功',
+                'filename': filename,
+                'uploaded_at': application.pdf_uploaded_at.strftime('%Y-%m-%d %H:%M:%S'),
+                'uploaded_by': current_user.display_name
+            })
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': f'上传失败：{str(e)}'}), 500
+
+    # PDF 删除路由
+    @app.route('/api/application/<int:application_id>/delete-pdf', methods=['POST'])
+    @login_required
+    def delete_pdf(application_id):
+        application = LaborApplication.query.get_or_404(application_id)
+
+        # 检查权限
+        if not current_user.is_admin and application.applicant != current_user.display_name:
+            return jsonify({'success': False, 'message': '权限不足'}), 403
+
+        if not application.signed_pdf_filename:
+            return jsonify({'success': False, 'message': '没有上传过 PDF'}), 400
+
+        try:
+            # 删除文件
+            upload_folder = app.config['PDF_UPLOAD_FOLDER']
+            filepath = os.path.join(upload_folder, application.signed_pdf_filename)
+            if os.path.exists(filepath):
+                os.remove(filepath)
+
+            # 清空数据库记录
+            application.signed_pdf_filename = None
+            application.pdf_uploaded_at = None
+            application.pdf_uploaded_by = None
+            db.session.commit()
+
+            return jsonify({'success': True, 'message': 'PDF 已删除'})
+
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({'success': False, 'message': f'删除失败：{str(e)}'}), 500
+
+    # 查看已上传的 PDF
+    @app.route('/uploads/pdf/<filename>')
+    @login_required
+    def view_uploaded_pdf(filename):
+        try:
+            upload_folder = app.config['PDF_UPLOAD_FOLDER']
+            filepath = os.path.join(upload_folder, filename)
+            if os.path.exists(filepath):
+                return send_file(filepath, mimetype='application/pdf')
+            else:
+                return '文件不存在', 404
+        except Exception as e:
+            return f'错误：{str(e)}', 500
+
     # 用户修改密码
     @app.route('/change-password', methods=['GET', 'POST'])
     @login_required

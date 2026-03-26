@@ -1,7 +1,7 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime,timezone
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import UserMixin, current_user  # 添加current_user导入
+from flask_login import UserMixin, current_user  # 添加 current_user 导入
 db = SQLAlchemy()
 
 
@@ -109,7 +109,7 @@ class ApplicationItem(db.Model):
         self.quantity = quantity
         self.user_proposed_labor = user_proposed_labor
 
-        # 如果有work_item对象，创建快照
+        # 如果有 work_item 对象，创建快照
         if work_item:
             self.snapshot_code = work_item.code
             self.snapshot_name = work_item.name
@@ -118,7 +118,7 @@ class ApplicationItem(db.Model):
             self.snapshot_category = work_item.category
             self.required_labor = quantity * work_item.labor_coefficient
         else:
-            # 如果没有传入work_item，尝试从数据库加载
+            # 如果没有传入 work_item，尝试从数据库加载
             work_item_obj = WorkItem.query.get(work_item_id)
             if work_item_obj:
                 self.snapshot_code = work_item_obj.code
@@ -190,6 +190,11 @@ class LaborApplication(db.Model):
     approval_time = db.Column(db.DateTime)  # 审批时间
     approved_labor = db.Column(db.Float)  # 新增：审批后的人工数
 
+    # PDF 附件字段 - 用于存储签字扫描版 PDF
+    signed_pdf_filename = db.Column(db.String(255))  # 上传的 PDF 文件名
+    pdf_uploaded_at = db.Column(db.DateTime)  # PDF 上传时间
+    pdf_uploaded_by = db.Column(db.String(50))  # PDF 上传人
+
     created_at = db.Column(db.DateTime, default=datetime.now)
     updated_at = db.Column(db.DateTime, default=datetime.now, onupdate=datetime.now)
 
@@ -203,9 +208,10 @@ class LaborApplication(db.Model):
     def to_dict(self, hide_coefficient=False):
         from datetime import timedelta
 
-        # UTC时间转换为北京时间（UTC+8）
+        # UTC 时间转换为北京时间（UTC+8）
         local_created_at = self.created_at + timedelta(hours=8) if self.created_at else None
         local_approval_time = self.approval_time + timedelta(hours=8) if self.approval_time else None
+        local_pdf_uploaded = self.pdf_uploaded_at + timedelta(hours=8) if self.pdf_uploaded_at else None
 
         return {
             'id': self.id,
@@ -226,7 +232,11 @@ class LaborApplication(db.Model):
             'local_created_at': local_created_at.strftime('%Y-%m-%d %H:%M:%S') if local_created_at else None,
             'updated_at': self.updated_at.strftime('%Y-%m-%d %H:%M:%S') if self.updated_at else None,
             'user_id': self.user_id,
-            'items': [item.to_dict(hide_coefficient) for item in self.items]
+            'items': [item.to_dict(hide_coefficient) for item in self.items],
+            # PDF 附件信息
+            'signed_pdf_filename': self.signed_pdf_filename,
+            'pdf_uploaded_at': local_pdf_uploaded.strftime('%Y-%m-%d %H:%M:%S') if local_pdf_uploaded else None,
+            'pdf_uploaded_by': self.pdf_uploaded_by
         }
 
     def __repr__(self):
