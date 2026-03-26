@@ -13,10 +13,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **Authentication**: Flask-Login with role-based access (admin/user)
 - **Production Deployment**: Apache + mod_wsgi on CentOS Stream
 - **Key Components**:
-  - `app.py` - Main application with all routes and business logic
+  - `app.py` - Main application with all routes and business logic, contains `create_app()` factory
   - `models.py` - SQLAlchemy models (User, WorkItem, ApplicationItem, LaborApplication)
   - `config.py` - Configuration class with database URI and upload settings
   - `init_tables.py` - Database initialization script for production
+  - `requirements.txt` - Python dependencies
 
 ## Commands
 
@@ -26,6 +27,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 source venv/bin/activate  # Linux/Mac
 # or
 .venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
 
 # Run development server
 python app.py

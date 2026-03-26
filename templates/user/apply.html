@@ -75,14 +75,15 @@
                             <table class="table table-bordered" id="workItemsTable">
                                 <thead class="table-light">
                                     <tr>
-                                        <th width="5%">序号</th>
+                                        <th width="4%">序号</th>
                                         <th width="20%">分部分项工程</th>
-                                        <th width="10%">用工系数</th>
-                                        <th width="10%">计量单位</th>
-                                        <th width="15%">工程量</th>
-                                        <th width="15%">所需用工</th>
-                                        <th width="15%">拟申请用工</th>
-                                        <th width="10%">操作</th>
+                                        <th width="8%">用工系数</th>
+                                        <th width="7%">计量单位</th>
+                                        <th width="11%">工程量</th>
+                                        <th width="10%">所需用工</th>
+                                        <th width="11%">参考值</th>
+                                        <th width="13%">拟申请用工</th>
+                                        <th width="8%">操作</th>
                                     </tr>
                                 </thead>
                                 <tbody id="workItemsBody">
@@ -92,12 +93,12 @@
                                     <tr class="table-info">
                                         <td colspan="5" class="text-end"><strong>系统计算总用工：</strong></td>
                                         <td id="totalLabor">0.00</td>
-                                        <td colspan="2"></td>
+                                        <td colspan="3"></td>
                                     </tr>
                                     <tr class="table-warning">
                                         <td colspan="6" class="text-end"><strong>您申请总用工：</strong></td>
                                         <td id="totalUserProposed">0.00</td>
-                                        <td></td>
+                                        <td colspan="2"></td>
                                     </tr>
                                 </tfoot>
                             </table>
@@ -236,8 +237,15 @@
 .work-item-row:hover {
     background-color: #f8f9fa;
 }
-.quantity-input, .proposed-input {
-    max-width: 120px;
+.work-item-row td {
+    vertical-align: middle;
+    padding: 0.5rem;
+}
+.form-control-sm {
+    padding: 0.25rem 0.5rem;
+}
+.quantity-input, .reference-value-input, .proposed-input {
+    max-width: 85px;
 }
 .delete-row-btn {
     cursor: pointer;
@@ -284,9 +292,27 @@
 let selectedItems = [];  // 存储已选择的项目ID
 let rowCounter = 0;      // 行计数器
 let selectedCheckboxes = []; // 存储选中的复选框
+// 参考系数 - 从后端模板变量传入
+window.globalReferenceCoefficient = {{ current_reference_coefficient | default(0.85) }};
+console.log("参考系数:", window.globalReferenceCoefficient);
+
+// 存储所有工作项数据，用于查找系数
+let allWorkItems = {};
 
 $(document).ready(function() {
     console.log("页面加载完成");
+
+    // 初始化所有工作项数据
+    {% for item in items %}
+    allWorkItems[{{ item.id }}] = {
+        id: {{ item.id }},
+        code: '{{ item.code }}',
+        name: '{{ item.name }}',
+        labor_coefficient: {{ item.labor_coefficient }},
+        unit: '{{ item.unit }}',
+        category: '{{ item.category }}'
+    };
+    {% endfor %}
 
     // 初始化选择功能
     setupSelectAll();
@@ -474,28 +500,31 @@ function addWorkItemRow(itemId, itemCode, itemName, coefficient, unit) {
                 <strong>${escapeHtml(itemName)}</strong>
             </div>
         </td>
-        <td class="coefficient-hidden">***</td>
-        <td>${escapeHtml(unit)}</td>
+        <td class="coefficient-hidden" style="font-size: 0.85rem;">***</td>
+        <td style="font-size: 0.85rem;">${escapeHtml(unit)}</td>
         <td>
-            <div class="input-group input-group-sm">
-                <input type="number" class="form-control quantity-input"
-                       data-row-id="${rowCounter}"
-                       value="1.00" min="0.01" step="0.01" required>
-                <span class="input-group-text">${escapeHtml(unit)}</span>
-            </div>
+            <input type="number" class="form-control form-control-sm quantity-input"
+                   data-row-id="${rowCounter}"
+                   value="1.00" min="0.01" step="0.01" required
+                   style="font-size: 0.85rem;">
         </td>
         <td>
-            <span class="required-labor coefficient-hidden" id="requiredLabor_${rowCounter}">***</span>
+            <span class="required-labor coefficient-hidden" id="requiredLabor_${rowCounter}" style="font-size: 0.85rem;">***</span>
+        </td>
+        <td>
+            <input type="number" class="form-control form-control-sm reference-value-input"
+                   data-row-id="${rowCounter}"
+                   value="" min="0.01" step="0.01" readonly
+                   style="background-color: #e9ecef; font-size: 0.85rem;">
         </td>
         <td>
             <div class="input-group input-group-sm">
                 <input type="number" class="form-control proposed-input"
                        data-row-id="${rowCounter}"
-                       value="" min="0.01" step="0.01" required
-                       placeholder="请输入">
-                <span class="input-group-text">人工</span>
+                       value="" min="0.01" step="0.01"
+                       style="font-size: 0.85rem;">
+                <span class="input-group-text" style="font-size: 0.85rem;">人工</span>
             </div>
-            <div class="form-text" style="font-size: 0.8rem;">必填</div>
         </td>
         <td class="text-center">
             <button type="button" class="btn btn-sm btn-danger delete-row-btn"
@@ -508,30 +537,76 @@ function addWorkItemRow(itemId, itemCode, itemName, coefficient, unit) {
     $('#workItemsBody').append(rowHtml);
     selectedItems.push(itemId);
 
-    // 绑定工程量输入事件
-    $(`#workItemRow_${rowCounter} .quantity-input`).on('input', function() {
-        calculateRowLabor(rowCounter, coefficient);
+    // 绑定工程量输入事件 - 使用事件委托
+    $('#workItemsBody').on('input', '.quantity-input', function() {
+        const $row = $(this).closest('tr');
+        const itemId = $row.data('item-id');
+        // 从全局数据中获取 coefficient
+        const item = allWorkItems[itemId];
+        if (!item) return;
+
+        const coefficient = item.labor_coefficient;
+        const quantity = parseFloat($(this).val()) || 0;
+        const referenceCoefficient = window.globalReferenceCoefficient || 0.85;
+        const referenceValue = coefficient * referenceCoefficient;
+        const proposedLabor = referenceValue * quantity;
+
+        // 更新参考值显示（当前行）
+        $row.find('.reference-value-input').val(referenceValue.toFixed(2));
+        // 更新拟申请用工（当前行）
+        $row.find('.proposed-input').val(proposedLabor.toFixed(2));
+
         calculateTotalLabor();
+        calculateTotalUserProposed();
         updateWorkItemsData();
     });
 
-    // 绑定拟申请用工输入事件
-    $(`#workItemRow_${rowCounter} .proposed-input`).on('input', function() {
+    // 绑定拟申请用工输入事件 - 使用事件委托
+    $('#workItemsBody').on('input', '.proposed-input', function() {
         calculateTotalUserProposed();
         updateWorkItemsData();
     });
 
     // 初始计算
-    calculateRowLabor(rowCounter, coefficient);
+    const quantity = parseFloat($(`#workItemRow_${rowCounter} .quantity-input`).val()) || 0;
+    const referenceCoefficient = window.globalReferenceCoefficient || 0.85;
+    const referenceValue = coefficient * referenceCoefficient;
+    const proposedLabor = referenceValue * quantity;
+
+    // 更新参考值显示
+    $(`#workItemRow_${rowCounter} .reference-value-input`).val(referenceValue.toFixed(2));
+    // 更新拟申请用工
+    $(`#workItemRow_${rowCounter} .proposed-input`).val(proposedLabor.toFixed(2));
+
     calculateTotalLabor();
     calculateTotalUserProposed();
     updateWorkItemsData();
 }
 
-// 计算单行所需人工
+// 计算单行所需人工（隐藏显示）
 function calculateRowLabor(rowId, coefficient) {
     const quantity = parseFloat($(`#workItemRow_${rowId} .quantity-input`).val()) || 0;
-    return quantity * coefficient;
+    const requiredLabor = quantity * coefficient;
+    $(`#requiredLabor_${rowId}`).text('***');  // 隐藏显示
+    return requiredLabor;
+}
+
+// 计算参考值（单位参考 = 用工系数 × 参考系数）
+function calculateReferenceValue(rowId, coefficient) {
+    // 获取全局参考系数
+    const referenceCoefficient = window.globalReferenceCoefficient || 0.85;
+    const referenceValue = coefficient * referenceCoefficient;
+    $(`#workItemRow_${rowId} .reference-value-input`).val(referenceValue.toFixed(2)).attr('placeholder', referenceValue.toFixed(2));
+    return referenceValue;
+}
+
+// 计算拟申请用工（参考值 × 工程量）
+function calculateProposedLabor(rowId) {
+    const quantity = parseFloat($(`#workItemRow_${rowId} .quantity-input`).val()) || 0;
+    const referenceValue = parseFloat($(`#workItemRow_${rowId} .reference-value-input`).val()) || 0;
+    const proposedLabor = referenceValue * quantity;
+    $(`#workItemRow_${rowId} .proposed-input`).val(proposedLabor.toFixed(2));
+    return proposedLabor;
 }
 
 // 计算系统总人工数
