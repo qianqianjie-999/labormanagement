@@ -135,7 +135,7 @@ body {
 
 
 
-/* static/css/style.css 或直接在base.html中添加 */
+/* 移动端优化 */
 @media (max-width: 768px) {
   /* 调整表格字体和间距 */
   .table th, .table td {
@@ -146,19 +146,39 @@ body {
   /* 按钮加大触摸区域 */
   .btn {
     padding: 0.5rem 1rem;
-    min-height: 44px; /* 苹果建议的最小触摸目标 */
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+
+  /* 按钮组在移动端堆叠 */
+  .btn-group .btn {
+    min-width: 44px;
+    padding: 0.4rem 0.6rem;
   }
 
   /* 输入框加大 */
   .form-control {
-    font-size: 16px; /* 防止iOS自动缩放 */
+    font-size: 16px;
     padding: 0.75rem;
+    min-height: 44px;
+  }
+
+  /* 表单标签优化 */
+  .form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
   }
 
   /* 模态框全屏显示 */
   .modal-dialog {
     margin: 0;
     max-width: 100%;
+    max-height: 100vh;
+  }
+
+  .modal-content {
+    border-radius: 0;
+    min-height: 100vh;
   }
 
   /* 隐藏部分非关键列 */
@@ -166,23 +186,155 @@ body {
     display: none !important;
   }
 
-  /* 调整卡片间距 */
+  /* 卡片优化 */
+  .card {
+    margin: 0.5rem 0;
+    border-radius: 0.5rem;
+  }
+
   .card-body {
     padding: 0.75rem;
   }
 
-  /* 调整统计卡片布局 */
-  .stats-card .card-body {
+  .card-header {
+    padding: 0.75rem 1rem;
+  }
+
+  /* 统计卡片布局 - 2列网格 */
+  .stats-card {
+    margin-bottom: 0.75rem;
+  }
+
+  /* 导航栏优化 */
+  .navbar {
+    padding: 0.5rem 0;
+  }
+
+  .navbar-brand {
+    font-size: 1rem;
+    padding: 0 0.5rem;
+  }
+
+  .navbar-nav .nav-link {
+    padding: 0.6rem 1rem;
+    font-size: 0.95rem;
+  }
+
+  .navbar-nav .nav-link i {
+    width: 1.5rem;
+    text-align: center;
+    margin-right: 0.5rem;
+  }
+
+  /* 下拉菜单全宽 */
+  .dropdown-menu {
+    width: 100%;
+    border-radius: 0;
+  }
+
+  /* 页面标题优化 */
+  h1, .h1 {
+    font-size: 1.5rem;
+  }
+
+  h2, .h2 {
+    font-size: 1.3rem;
+  }
+
+  h3, .h3 {
+    font-size: 1.1rem;
+  }
+
+  /* 表格响应式优化 */
+  .table-responsive {
+    font-size: 0.85rem;
+    margin: 0 -0.75rem;
+    padding: 0 0.75rem;
+  }
+
+  /* 输入组优化 */
+  .input-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .input-group > .form-control,
+  .input-group > .input-group-text {
+    width: 100%;
+    border-radius: 0.25rem;
+  }
+
+  /* 表单行优化 */
+  .row.g-3 > [class*="col-"] {
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* 徽章优化 */
+  .badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+  }
+
+  /* 警告框优化 */
+  .alert {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+
+  /* 分页优化 */
+  .pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  /* 工具栏优化 */
+  .d-flex.gap-2 {
+    gap: 0.5rem !important;
+  }
+
+  /* 模态框内部滚动 */
+  .modal-body {
+    overflow-y: auto;
+    max-height: calc(100vh - 120px);
+  }
+
+  /* 表格操作按钮单独一行 */
+  .table td:last-child,
+  .table th:last-child {
+    position: sticky;
+    right: 0;
+    background: white;
+    z-index: 10;
+    box-shadow: -2px 0 5px rgba(0,0,0,0.1);
+  }
+
+  .table-responsive .table td:last-child,
+  .table-responsive .table th:last-child {
+    background: #f8f9fa;
+  }
+}
+
+/* 超小屏幕额外优化 */
+@media (max-width: 576px) {
+  .container {
+    padding: 0 10px;
+  }
+
+  .card-body {
     padding: 0.5rem;
   }
 
-  /* 表格操作按钮组优化 */
-  .btn-group {
-    flex-wrap: wrap;
+  .btn-group-sm > .btn {
+    padding: 0.25rem 0.4rem;
+    font-size: 0.8rem;
   }
-  .btn-group > .btn {
-    margin: 2px;
-    flex: 1;
-    min-width: 60px;
+
+  .table th, .table td {
+    padding: 0.25rem;
+    font-size: 0.8rem;
+  }
+
+  .hide-on-xs {
+    display: none !important;
   }
 }

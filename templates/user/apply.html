@@ -4,9 +4,9 @@
 {% block title %}用工申请 - 用工申请管理系统{% endblock %}
 
 {% block header %}
-<h1 class="mb-4">
+<h1 class="mb-3 mb-md-4">
     <i class="fas fa-edit"></i> 用工申请
-    <small class="text-muted">可添加多条分部分项工程</small>
+    <small class="text-muted d-block d-md-inline">可添加多条分部分项工程</small>
 </h1>
 {% endblock %}
 
@@ -293,7 +293,7 @@ let selectedItems = [];  // 存储已选择的项目ID
 let rowCounter = 0;      // 行计数器
 let selectedCheckboxes = []; // 存储选中的复选框
 // 参考系数 - 从后端模板变量传入
-window.globalReferenceCoefficient = {{ current_reference_coefficient | default(0.85) }};
+window.globalReferenceCoefficient = {{ current_reference_coefficient | default(0.85) | tojson }};
 console.log("参考系数:", window.globalReferenceCoefficient);
 
 // 存储所有工作项数据，用于查找系数
@@ -308,7 +308,7 @@ $(document).ready(function() {
         id: {{ item.id }},
         code: '{{ item.code }}',
         name: '{{ item.name }}',
-        labor_coefficient: {{ item.labor_coefficient }},
+        labor_coefficient: {{ item.labor_coefficient if item.labor_coefficient is not none else 'null' }},
         unit: '{{ item.unit }}',
         category: '{{ item.category }}'
     };

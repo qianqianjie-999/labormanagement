@@ -23,13 +23,16 @@
 </head>
 <body>
     <!-- 导航栏 -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('user_index') if current_user.is_authenticated else url_for('login') }}">
-                <i class="fas fa-hard-hat"></i> 用工申请管理系统
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('user_index') if current_user.is_authenticated else url_for('login') }}">
+                <i class="fas fa-hard-hat me-2"></i>
+                <span class="d-none d-sm-inline">用工申请管理系统</span>
+                <span class="d-sm-none">用工系统</span>
             </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                    aria-controls="navbarNav" aria-expanded="false" aria-label="切换导航">
                 <span class="navbar-toggler-icon"></span>
             </button>
 

@@ -3,9 +3,9 @@
 {% block title %}统计报表 - 用工申请管理系统{% endblock %}
 
 {% block header %}
-<h1 class="mb-4">
+<h1 class="mb-3 mb-md-4">
     <i class="fas fa-chart-line"></i> 统计报表
-    <small class="text-muted">系统数据统计与分析</small>
+    <small class="text-muted d-block d-md-inline">系统数据统计与分析</small>
 </h1>
 {% endblock %}
 
@@ -15,22 +15,20 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card">
-                <div class="card-header bg-light">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
+                <div class="card-header bg-light py-2 py-md-3">
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center">
+                        <div class="mb-2 mb-md-0">
                             <i class="fas fa-filter"></i> 数据筛选
                         </div>
-                        <div>
-                            <button type="button" class="btn btn-outline-secondary btn-sm ms-2" id="pageFullscreenBtn" title="页面全屏">
-                                <i class="fas fa-expand"></i>
-                            </button>
-                        </div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" id="pageFullscreenBtn" title="页面全屏">
+                            <i class="fas fa-expand"></i>
+                        </button>
                     </div>
                 </div>
-                <div class="card-body">
-                    <div class="row g-3">
+                <div class="card-body py-3">
+                    <div class="row g-2 g-md-3">
                         <!-- 第一行：主要筛选条件 -->
-                        <div class="col-xl-3 col-lg-4 col-md-6">
+                        <div class="col-12 col-md-6 col-lg-4">
                             <label class="form-label">报表类型</label>
                             <div class="dropdown">
                                 <button class="btn btn-outline-primary w-100 text-start d-flex justify-content-between align-items-center"
@@ -55,34 +53,24 @@
                             </div>
                         </div>
 
-                        <div class="col-xl-4 col-lg-5 col-md-6">
+                        <div class="col-12 col-md-6 col-lg-5">
                             <div class="row g-2">
-                                <div class="col-md-6">
+                                <div class="col-6">
                                     <label class="form-label">开始日期</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-calendar"></i>
-                                        </span>
-                                        <input type="date" class="form-control" id="startDate" value="{{ start_date }}">
-                                    </div>
+                                    <input type="date" class="form-control form-control-sm" id="startDate" value="{{ start_date }}">
                                 </div>
-                                <div class="col-md-6">
+                                <div class="col-6">
                                     <label class="form-label">结束日期</label>
-                                    <div class="input-group">
-                                        <span class="input-group-text">
-                                            <i class="fas fa-calendar"></i>
-                                        </span>
-                                        <input type="date" class="form-control" id="endDate" value="{{ end_date }}">
-                                    </div>
+                                    <input type="date" class="form-control form-control-sm" id="endDate" value="{{ end_date }}">
                                 </div>
                             </div>
                         </div>
 
-                        <div class="col-xl-2 col-lg-3 col-md-4">
+                        <div class="col-12 col-lg-3 d-flex flex-column justify-content-end">
                             <label class="form-label">快速操作</label>
                             <div class="d-flex gap-2">
                                 <button class="btn btn-primary flex-fill" id="refreshBtn">
-                                    <i class="fas fa-sync-alt me-1"></i>刷新
+                                    <i class="fas fa-sync-alt me-1"></i><span class="d-none d-sm-inline">刷新</span>
                                 </button>
                                 <button class="btn btn-success" id="exportBtn" title="导出Excel">
                                     <i class="fas fa-download"></i>
@@ -91,22 +79,22 @@
                         </div>
 
                         <!-- 第二行：快速筛选按钮 -->
-                        <div class="col-12 mt-2">
-                            <div class="d-flex flex-wrap gap-2 align-items-center">
-                                <label class="form-label mb-0 me-2">
-                                    <i class="fas fa-bolt me-1"></i>快速筛选：
+                        <div class="col-12">
+                            <div class="d-flex flex-wrap gap-1 gap-md-2 align-items-center">
+                                <label class="form-label mb-0 me-1">
+                                    <i class="fas fa-bolt me-1"></i><span class="d-none d-sm-inline">快速筛选：</span>
                                 </label>
                                 <button class="btn btn-outline-secondary btn-sm" data-days="7">
-                                    <i class="fas fa-clock me-1"></i>最近7天
+                                    <i class="fas fa-clock me-1"></i><span class="d-none d-md-inline">7天</span>
                                 </button>
                                 <button class="btn btn-outline-secondary btn-sm" data-days="30">
-                                    <i class="fas fa-calendar me-1"></i>最近30天
+                                    <i class="fas fa-calendar me-1"></i><span class="d-none d-md-inline">30天</span>
                                 </button>
                                 <button class="btn btn-outline-secondary btn-sm" data-days="90">
-                                    <i class="fas fa-calendar-alt me-1"></i>最近3个月
+                                    <i class="fas fa-calendar-alt me-1"></i><span class="d-none d-lg-inline">3个月</span>
                                 </button>
                                 <button class="btn btn-outline-secondary btn-sm" id="resetFilterBtn">
-                                    <i class="fas fa-redo me-1"></i>重置
+                                    <i class="fas fa-redo me-1"></i><span class="d-none d-md-inline">重置</span>
                                 </button>
                             </div>
                         </div>
