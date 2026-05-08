@@ -387,7 +387,8 @@ $(document).ready(function() {
         $.ajax({
             url: '/api/admin/users/' + userId,
             type: 'GET',
-            success: function(user) {
+            success: function(response) {
+                var user = response.user;
                 // 填充表单
                 $('#edit_user_id').val(user.id);
                 $('#edit_username').val(user.username);
@@ -398,19 +399,15 @@ $(document).ready(function() {
                 // 设置角色
                 if (user.is_admin) {
                     $('#edit_role_admin').prop('checked', true);
-                    $('#edit_role_admin').next('label').addClass('active');
                 } else {
                     $('#edit_role_user').prop('checked', true);
-                    $('#edit_role_user').next('label').addClass('active');
                 }
 
                 // 设置状态
                 if (user.is_active) {
                     $('#edit_status_active').prop('checked', true);
-                    $('#edit_status_active').next('label').addClass('active');
                 } else {
                     $('#edit_status_inactive').prop('checked', true);
-                    $('#edit_status_inactive').next('label').addClass('active');
                 }
 
                 // 清空密码字段
@@ -419,6 +416,9 @@ $(document).ready(function() {
                 // 显示模态框
                 var modal = new bootstrap.Modal(document.getElementById('editUserModal'));
                 modal.show();
+            },
+            error: function(xhr) {
+                showToast('error', '获取失败', '无法获取用户信息！');
             }
         });
     });

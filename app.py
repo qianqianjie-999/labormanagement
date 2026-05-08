@@ -1856,6 +1856,21 @@ def create_app():
         except Exception as e:
             return jsonify({'success': False, 'message': str(e)}), 500
 
+    @app.route('/api/admin/users/<int:user_id>', methods=['GET'])
+    @login_required
+    def api_get_user(user_id):
+        if not current_user.is_admin:
+            return jsonify({'success': False, 'message': '权限不足'}), 403
+
+        try:
+            user = User.query.get_or_404(user_id)
+            return jsonify({
+                'success': True,
+                'user': user.to_dict()
+            })
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)}), 500
+
     @app.route('/api/admin/users/<int:user_id>', methods=['DELETE'])
     @login_required
     def api_delete_user(user_id):
