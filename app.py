@@ -1184,6 +1184,50 @@ def create_app():
                 flash('用户名或密码错误', 'error')
 
         return render_template('login.html')
+
+    # 用户注册
+    @app.route('/api/register', methods=['POST'])
+    def api_register_user():
+        try:
+            data = request.json
+            username = data.get('username')
+            display_name = data.get('display_name')
+            password = data.get('password')
+            email = data.get('email', '')
+            department = data.get('department', '')
+
+            if not all([username, display_name, password]):
+                return jsonify({'success': False, 'message': '用户名、显示名称和密码是必填的'}), 400
+
+            if len(password) < 6:
+                return jsonify({'success': False, 'message': '密码长度不能少于6位'}), 400
+
+            existing_user = User.query.filter_by(username=username).first()
+            if existing_user:
+                return jsonify({'success': False, 'message': '用户名已存在'}), 400
+
+            new_user = User(
+                username=username,
+                display_name=display_name,
+                password=password,
+                email=email,
+                department=department,
+                is_admin=False,
+                is_active=True  # 新注册用户默认激活
+            )
+
+            db.session.add(new_user)
+            db.session.commit()
+
+            return jsonify({
+                'success': True,
+                'message': '注册成功！',
+                'user': new_user.to_dict()
+            })
+
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)}), 500
+
     # 首页重定向到登录页面
     @app.route('/')
     def index():

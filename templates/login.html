@@ -26,6 +26,12 @@
                     <div class="mb-3">
                         <label for="password" class="form-label">密码</label>
                         <input type="password" class="form-control" id="password" name="password" required>
+                        <div class="mt-2">
+                            <button type="button" class="btn btn-link p-0 text-primary text-decoration-underline" 
+                                    data-bs-toggle="modal" data-bs-target="#forgotPasswordModal">
+                                <i class="fas fa-key me-1"></i>忘记密码？
+                            </button>
+                        </div>
                     </div>
 
                     <div class="mb-3 form-check">
@@ -40,8 +46,144 @@
                     </div>
                 </form>
 
+                <div class="mt-4 pt-4 border-top">
+                    <p class="text-center text-muted mb-2">还没有账号？</p>
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-outline-primary" 
+                                data-bs-toggle="modal" data-bs-target="#registerModal">
+                            <i class="fas fa-user-plus"></i> 注册新账号
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- 忘记密码模态框 -->
+<div class="modal fade" id="forgotPasswordModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title">
+                    <i class="fas fa-key me-2"></i>忘记密码
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    如需重置密码，请联系系统管理员。
+                </div>
+                <p class="text-muted small mt-3">
+                    管理员联系方式：<br>
+                    电话：138-xxxx-xxxx<br>
+                    邮箱：admin@example.com
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
+                    <i class="fas fa-check"></i> 知道了
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 注册模态框 -->
+<div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title">
+                    <i class="fas fa-user-plus me-2"></i>注册新账号
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="registerForm">
+                    <div class="mb-3">
+                        <label for="reg_username" class="form-label">用户名 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="reg_username" name="username" required placeholder="请输入用户名">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_display_name" class="form-label">显示名称 <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="reg_display_name" name="display_name" required placeholder="请输入真实姓名">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_email" class="form-label">邮箱</label>
+                        <input type="email" class="form-control" id="reg_email" name="email" placeholder="user@example.com">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_department" class="form-label">部门</label>
+                        <input type="text" class="form-control" id="reg_department" name="department" placeholder="请输入部门名称">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_password" class="form-label">密码 <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="reg_password" name="password" required placeholder="请输入密码">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_confirm_password" class="form-label">确认密码 <span class="text-danger">*</span></label>
+                        <input type="password" class="form-control" id="reg_confirm_password" name="confirm_password" required placeholder="请再次输入密码">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times"></i> 取消
+                </button>
+                <button type="button" class="btn btn-success" id="submitRegisterBtn">
+                    <i class="fas fa-user-plus"></i> 注册
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // 注册功能
+    $('#submitRegisterBtn').click(function() {
+        var password = $('#reg_password').val();
+        var confirmPassword = $('#reg_confirm_password').val();
+        
+        if (password !== confirmPassword) {
+            alert('两次输入的密码不一致！');
+            return;
+        }
+        
+        if (password.length < 6) {
+            alert('密码长度不能少于6位！');
+            return;
+        }
+        
+        var data = {
+            username: $('#reg_username').val(),
+            display_name: $('#reg_display_name').val(),
+            email: $('#reg_email').val(),
+            department: $('#reg_department').val(),
+            password: password
+        };
+        
+        $.ajax({
+            url: '{{ url_for("api_register_user") }}',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(data),
+            success: function(response) {
+                if (response.success) {
+                    alert('注册成功！请等待管理员审核。');
+                    $('#registerModal').modal('hide');
+                    $('#registerForm')[0].reset();
+                } else {
+                    alert('注册失败：' + response.message);
+                }
+            },
+            error: function() {
+                alert('网络错误，请稍后重试！');
+            }
+        });
+    });
+});
+</script>
 {% endblock %}
