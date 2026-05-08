@@ -26,7 +26,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
         <div class="container-fluid">
             <a class="navbar-brand d-flex align-items-center" href="{{ url_for('user_index') if current_user.is_authenticated else url_for('login') }}">
-                <i class="fas fa-hard-hat me-2"></i>
+                <img src="{{ url_for('static', filename='img/kwd-icon.svg') }}" alt="KWD Logo" width="32" height="32" class="me-2">
                 <span class="d-none d-sm-inline">用工申请管理系统</span>
                 <span class="d-sm-none">用工系统</span>
             </a>
