@@ -94,7 +94,7 @@
 <div class="modal fade" id="registerModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header bg-success text-white">
+            <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title">
                     <i class="fas fa-user-plus me-2"></i>注册新账号
                 </h5>
@@ -132,7 +132,7 @@
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
                     <i class="fas fa-times"></i> 取消
                 </button>
-                <button type="button" class="btn btn-success" id="submitRegisterBtn">
+                <button type="button" class="btn btn-primary" id="submitRegisterBtn">
                     <i class="fas fa-user-plus"></i> 注册
                 </button>
             </div>
@@ -141,11 +141,12 @@
 </div>
 
 <script>
-$(document).ready(function() {
+// 等待页面完全加载后绑定事件
+document.addEventListener('DOMContentLoaded', function() {
     // 注册功能
-    $('#submitRegisterBtn').click(function() {
-        var password = $('#reg_password').val();
-        var confirmPassword = $('#reg_confirm_password').val();
+    document.getElementById('submitRegisterBtn').addEventListener('click', function() {
+        var password = document.getElementById('reg_password').value;
+        var confirmPassword = document.getElementById('reg_confirm_password').value;
         
         if (password !== confirmPassword) {
             alert('两次输入的密码不一致！');
@@ -158,30 +159,36 @@ $(document).ready(function() {
         }
         
         var data = {
-            username: $('#reg_username').val(),
-            display_name: $('#reg_display_name').val(),
-            email: $('#reg_email').val(),
-            department: $('#reg_department').val(),
+            username: document.getElementById('reg_username').value,
+            display_name: document.getElementById('reg_display_name').value,
+            email: document.getElementById('reg_email').value,
+            department: document.getElementById('reg_department').value,
             password: password
         };
         
-        $.ajax({
-            url: '{{ url_for("api_register_user") }}',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify(data),
-            success: function(response) {
-                if (response.success) {
-                    alert('注册成功！请等待管理员审核。');
-                    $('#registerModal').modal('hide');
-                    $('#registerForm')[0].reset();
-                } else {
-                    alert('注册失败：' + response.message);
-                }
+        fetch('/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
             },
-            error: function() {
-                alert('网络错误，请稍后重试！');
+            body: JSON.stringify(data)
+        })
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(response) {
+            if (response.success) {
+                alert('注册成功！');
+                var modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
+                modal.hide();
+                document.getElementById('registerForm').reset();
+            } else {
+                alert('注册失败：' + response.message);
             }
+        })
+        .catch(function(error) {
+            alert('网络错误，请稍后重试！');
+            console.error('Error:', error);
         });
     });
 });
