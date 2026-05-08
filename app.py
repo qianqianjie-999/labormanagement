@@ -1,11 +1,14 @@
 # app.py - 用工申请管理系统主程序
 import json
 import os
-from datetime import datetime, timedelta,timezone
+import random
+import string
+from datetime import datetime, timedelta, timezone
 from io import BytesIO
+from collections import defaultdict
 
 import pandas as pd
-from flask import Flask, render_template, request, jsonify, send_file, flash, redirect, url_for
+from flask import Flask, render_template, request, jsonify, send_file, flash, redirect, url_for, session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from reportlab.lib.pagesizes import A4
@@ -1185,6 +1188,36 @@ def create_app():
 
         return render_template('login.html')
 
+    # 存储注册记录（内存中，重启后会清空，生产环境建议用Redis）
+    register_records = defaultdict(list)
+
+    def get_client_ip():
+        """获取客户端IP"""
+        if request.headers.get('X-Forwarded-For'):
+            return request.headers.get('X-Forwarded-For').split(',')[0].strip()
+        elif request.headers.get('X-Real-IP'):
+            return request.headers.get('X-Real-IP')
+        else:
+            return request.remote_addr
+
+    def generate_captcha(length=4):
+        """生成验证码"""
+        chars = string.ascii_uppercase + string.digits
+        return ''.join(random.choice(chars) for _ in range(length))
+
+    # 获取验证码图片
+    @app.route('/api/captcha')
+    def api_get_captcha():
+        captcha_code = generate_captcha()
+        session['captcha'] = captcha_code
+        session['captcha_time'] = datetime.now().timestamp()
+        
+        # 返回JSON格式的验证码（前端用CSS渲染）
+        return jsonify({
+            'success': True,
+            'captcha': captcha_code
+        })
+
     # 用户注册
     @app.route('/api/register', methods=['POST'])
     def api_register_user():
@@ -1195,17 +1228,70 @@ def create_app():
             password = data.get('password')
             email = data.get('email', '')
             department = data.get('department', '')
+            captcha = data.get('captcha', '').upper()
 
+            # 1. 验证码验证
+            session_captcha = session.get('captcha', '').upper()
+            if captcha != session_captcha:
+                return jsonify({'success': False, 'message': '验证码错误'}), 400
+            
+            # 验证验证码有效期（5分钟）
+            captcha_time = session.get('captcha_time', 0)
+            if datetime.now().timestamp() - captcha_time > 300:
+                return jsonify({'success': False, 'message': '验证码已过期'}), 400
+            
+            # 验证后清除验证码（防止重复使用）
+            session.pop('captcha', None)
+            session.pop('captcha_time', None)
+
+            # 2. 注册频率限制（1分钟内最多2次，5分钟内最多5次）
+            client_ip = get_client_ip()
+            now = datetime.now()
+            recent_records = register_records.get(client_ip, [])
+            
+            # 清理过期记录（保留5分钟内的）
+            recent_records = [r for r in recent_records if now - r < timedelta(minutes=5)]
+            register_records[client_ip] = recent_records
+            
+            # 检查频率限制
+            one_minute_ago = now - timedelta(minutes=1)
+            one_minute_count = sum(1 for r in recent_records if r > one_minute_ago)
+            
+            if one_minute_count >= 2:
+                return jsonify({'success': False, 'message': '注册过于频繁，请稍后再试'}), 429
+            
+            if len(recent_records) >= 5:
+                return jsonify({'success': False, 'message': '您的注册次数已达上限，请稍后再试'}), 429
+
+            # 3. 必填项检查
             if not all([username, display_name, password]):
                 return jsonify({'success': False, 'message': '用户名、显示名称和密码是必填的'}), 400
 
-            if len(password) < 6:
-                return jsonify({'success': False, 'message': '密码长度不能少于6位'}), 400
+            # 4. 用户名格式验证
+            if len(username) < 3 or len(username) > 20:
+                return jsonify({'success': False, 'message': '用户名长度必须在3-20个字符之间'}), 400
+            
+            if not username.isalnum():
+                return jsonify({'success': False, 'message': '用户名只能包含字母和数字'}), 400
 
+            # 5. 密码强度要求
+            if len(password) < 8:
+                return jsonify({'success': False, 'message': '密码长度不能少于8位'}), 400
+            
+            # 检查密码复杂度
+            has_upper = any(c.isupper() for c in password)
+            has_lower = any(c.islower() for c in password)
+            has_digit = any(c.isdigit() for c in password)
+            
+            if not (has_upper and has_lower and has_digit):
+                return jsonify({'success': False, 'message': '密码必须包含大写字母、小写字母和数字'}), 400
+
+            # 6. 用户名唯一性检查
             existing_user = User.query.filter_by(username=username).first()
             if existing_user:
                 return jsonify({'success': False, 'message': '用户名已存在'}), 400
 
+            # 7. 创建用户
             new_user = User(
                 username=username,
                 display_name=display_name,
@@ -1218,6 +1304,9 @@ def create_app():
 
             db.session.add(new_user)
             db.session.commit()
+
+            # 记录注册时间
+            register_records[client_ip].append(now)
 
             return jsonify({
                 'success': True,

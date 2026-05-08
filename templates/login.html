@@ -104,7 +104,7 @@
                 <form id="registerForm">
                     <div class="mb-3">
                         <label for="reg_username" class="form-label">用户名 <span class="text-danger">*</span></label>
-                        <input type="text" class="form-control" id="reg_username" name="username" required placeholder="请输入用户名">
+                        <input type="text" class="form-control" id="reg_username" name="username" required placeholder="3-20位字母或数字">
                     </div>
                     <div class="mb-3">
                         <label for="reg_display_name" class="form-label">显示名称 <span class="text-danger">*</span></label>
@@ -120,11 +120,23 @@
                     </div>
                     <div class="mb-3">
                         <label for="reg_password" class="form-label">密码 <span class="text-danger">*</span></label>
-                        <input type="password" class="form-control" id="reg_password" name="password" required placeholder="请输入密码">
+                        <input type="password" class="form-control" id="reg_password" name="password" required placeholder="至少8位，包含大小写字母和数字">
                     </div>
                     <div class="mb-3">
                         <label for="reg_confirm_password" class="form-label">确认密码 <span class="text-danger">*</span></label>
                         <input type="password" class="form-control" id="reg_confirm_password" name="confirm_password" required placeholder="请再次输入密码">
+                    </div>
+                    <div class="mb-3">
+                        <label for="reg_captcha" class="form-label">验证码 <span class="text-danger">*</span></label>
+                        <div class="input-group">
+                            <input type="text" class="form-control" id="reg_captcha" name="captcha" required placeholder="请输入验证码" maxlength="4">
+                            <button type="button" class="btn btn-outline-secondary" id="refreshCaptchaBtn">
+                                <i class="fas fa-refresh"></i>
+                            </button>
+                        </div>
+                        <div class="mt-2">
+                            <span class="badge bg-secondary text-white" id="captchaDisplay" style="font-size: 1.2rem; letter-spacing: 0.3em; padding: 0.5rem 1rem;"></span>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -143,6 +155,33 @@
 <script>
 // 等待页面完全加载后绑定事件
 document.addEventListener('DOMContentLoaded', function() {
+    // 获取验证码
+    function loadCaptcha() {
+        fetch('/api/captcha')
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.success) {
+                document.getElementById('captchaDisplay').textContent = data.captcha;
+            }
+        })
+        .catch(function(error) {
+            console.error('获取验证码失败:', error);
+        });
+    }
+
+    // 刷新验证码按钮
+    document.getElementById('refreshCaptchaBtn').addEventListener('click', function() {
+        loadCaptcha();
+    });
+
+    // 注册模态框显示时加载验证码
+    var registerModal = document.getElementById('registerModal');
+    registerModal.addEventListener('show.bs.modal', function() {
+        loadCaptcha();
+    });
+
     // 注册功能
     document.getElementById('submitRegisterBtn').addEventListener('click', function() {
         var password = document.getElementById('reg_password').value;
@@ -153,8 +192,8 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        if (password.length < 6) {
-            alert('密码长度不能少于6位！');
+        if (password.length < 8) {
+            alert('密码长度不能少于8位！');
             return;
         }
         
@@ -163,7 +202,8 @@ document.addEventListener('DOMContentLoaded', function() {
             display_name: document.getElementById('reg_display_name').value,
             email: document.getElementById('reg_email').value,
             department: document.getElementById('reg_department').value,
-            password: password
+            password: password,
+            captcha: document.getElementById('reg_captcha').value
         };
         
         fetch('/api/register', {
@@ -182,8 +222,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 var modal = bootstrap.Modal.getInstance(document.getElementById('registerModal'));
                 modal.hide();
                 document.getElementById('registerForm').reset();
+                loadCaptcha(); // 刷新验证码
             } else {
                 alert('注册失败：' + response.message);
+                loadCaptcha(); // 刷新验证码
             }
         })
         .catch(function(error) {
